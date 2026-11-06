@@ -1,0 +1,80 @@
+project:
+  name: "Watchtower_UQ_Seg"
+  seed: 42
+  vram_budget_gb: 16.0
+  peak_target_unet_gb: 5.45
+  peak_target_vit_gb: 7.45
+
+training:
+  batch_size: 16
+  patch_size: 256
+  lr: 3.0e-4
+  weight_decay: 1.0e-4
+  epochs: 60
+  fp16: true
+  num_workers: 4
+  grad_clip_norm: 1.0
+  positive_oversample_prob: 0.70
+
+data:
+  sen2fire_root: "data/sen2fire"
+  wsts_plus_root: "data/wsts_plus"
+  stats_path: "configs/sen2fire_train_stats.json"
+  in_channels: 17
+  num_classes: 3
+  class_names:
+    - "Background_Smoke"
+    - "Burn_Scar"
+    - "Active_Flame_Front"
+  train_scenes:
+    - "scene1"
+    - "scene2"
+  val_scenes:
+    - "scene3"
+  test_scenes:
+    - "scene4"
+  radiometric_clip:
+    b1_b10_min: 0.0
+    b1_b10_max: 1.0
+    swir_b11_b12_min: 0.0
+    swir_b11_b12_max: 2.0
+    aerosol_b13_min: -3.0
+    aerosol_b13_max: 8.0
+    s2_reflectance_scale: 10000.0
+
+model:
+  architecture: "attention_unet_r50"  # options: attention_unet_r50 | compact_vit_s16
+  ssl_source: "ssl4eo_s12"            # options: ssl4eo_l | ssl4eo_s12
+  in_channels: 17
+  num_classes: 3
+  dropout_p: 0.15
+  unet_lateral_channels: [256, 192, 128, 64, 32]
+  vit_extract_blocks: [2, 5, 8, 11]
+
+loss:
+  weights: [0.40, 0.40, 0.20]         # [Focal, FocalTversky, Lovasz]
+  alpha_class: [0.10, 0.35, 0.55]     # [Background/Smoke, Burn Scar, Active Flame Front]
+  focal_gamma: 2.0
+  tversky_alpha_fp: 0.30
+  tversky_beta_fn: 0.70
+  tversky_gamma: 1.3333
+
+uncertainty:
+  mode: "hybrid_ensemble_mc"          # options: mc_dropout | deep_ensemble | hybrid_ensemble_mc
+  dropout_p: 0.15
+  mc_passes: 20
+  ensemble_size: 5
+  use_amp: true
+
+evaluation:
+  ece_bins: 15
+  smoke_aerosol_threshold: 1.0
+  fire_boundary_kernel_size: 31
+
+carbon:
+  agb_to_carbon_factor: 0.47
+  co2_molecular_ratio: 3.6667
+  combustion_completeness:
+    burn_scar: 0.45
+    active_flame_front: 0.65
+
