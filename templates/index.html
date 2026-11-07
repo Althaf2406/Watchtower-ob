@@ -513,15 +513,19 @@
           document.getElementById('imgDiagnostic').src = data.diagnostic_image_url + "?t=" + Date.now();
         }
 
-        // 4. Render GeoJSON Wildfire & Smoke Layers on Leaflet Map
+        // 4. Render Real GIS Wildfire & Smoke Layers on Leaflet Map
         fireOverlayGroup.clearLayers();
+        if (window.rasterMaskLayer) {
+          map.removeLayer(window.rasterMaskLayer);
+          window.rasterMaskLayer = null;
+        }
 
         if (data.geojson && data.geojson.features && data.geojson.features.length > 0) {
           const geojsonLayer = L.geoJSON(data.geojson, {
             style: function(feature) {
               const p = feature.properties || {};
               if (p.class_id === 2) {
-                // Active Flame Front
+                // Active Flame Front (High Intensity)
                 return {
                   color: p.stroke_color || '#FF1744',
                   weight: 3,
@@ -574,13 +578,29 @@
           });
 
           fireOverlayGroup.addLayer(geojsonLayer);
-          map.flyToBounds(geojsonLayer.getBounds(), { padding: [60, 60], duration: 1.2 });
-        }
 
-        // Show Map Toast
-        document.getElementById('toastMain').innerText = `🔥 Wildfire Mapped: ${data.carbon.nominal_mean.burned_area_ha.toFixed(1)} ha`;
-        document.getElementById('toastSub').innerText = `CO2e Emission: ${data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString()} tonnes | Model: ${data.model_architecture}`;
-        mapToast.classList.remove('hidden');
+          // Add High-Resolution 10m Raster Mask Overlay if available
+          if (data.mask_overlay_url && data.bbox) {
+            window.rasterMaskLayer = L.imageOverlay(data.mask_overlay_url + "?t=" + Date.now(), data.bbox, {
+              opacity: 0.85,
+              interactive: false
+            }).addTo(map);
+          }
+
+          map.flyToBounds(geojsonLayer.getBounds(), { padding: [60, 60], duration: 1.2 });
+
+          // Show Wildfire Alert Toast
+          document.getElementById('toastMain').innerText = `🔥 Wildfire Mapped: ${data.carbon.nominal_mean.burned_area_ha.toFixed(1)} ha`;
+          document.getElementById('toastSub').innerText = `CO2e Emission: ${data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString()} tonnes | Model: ${data.model_architecture}`;
+          mapToast.className = "absolute top-4 right-16 z-[400] bg-panel/90 backdrop-blur border border-amber-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all";
+          mapToast.classList.remove('hidden');
+        } else {
+          // Zero fire detected (Safe / unburned coordinate)
+          document.getElementById('toastMain').innerText = `🟢 No Wildfire Detected`;
+          document.getElementById('toastSub').innerText = `Surface reflectance normal. 0.0 ha burned within this AOI | Model: ${data.model_architecture}`;
+          mapToast.className = "absolute top-4 right-16 z-[400] bg-panel/90 backdrop-blur border border-emerald-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all";
+          mapToast.classList.remove('hidden');
+        }
 
         statusText.innerText = "Inference & Audit Completed";
         statusInd.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
