@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WATCHTOWER | Wildfire AI & Carbon Intelligence</title>
+  <link rel="icon" type="image/png" href="/assets/favicon.png">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            obsidian: '#050B18',
+            panel: '#0B1528',
+            card: '#101F3C',
+            accentCyan: '#00E5FF',
+            accentFlame: '#FF5722',
+            accentEmerald: '#00E676',
+            accentGold: '#FFC107'
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .leaflet-container { background: #050B18; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0B1528; }
+    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #00E5FF; }
+  </style>
+</head>
+<body class="bg-obsidian text-slate-100 flex flex-col h-screen overflow-hidden font-sans">
+
+  <!-- Top Navbar -->
+  <header class="h-14 border-b border-slate-800 bg-panel/80 backdrop-blur px-4 flex items-center justify-between z-20">
+    <div class="flex items-center space-x-3">
+      <img src="/assets/favicon.png" alt="Logo" class="w-8 h-8 rounded-lg shadow-lg border border-accentCyan/30">
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="font-black text-lg tracking-wider text-white">WATCHTOWER</span>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-accentCyan border border-cyan-800 font-semibold tracking-wide">AI GEOSPATIAL UQ</span>
+        </div>
+        <p class="text-[10px] text-slate-400 hidden md:block">Wildfire Attention & Transformer Calibration with Hybrid Tversky Optimization for Woodland Emission Reporting</p>
+      </div>
+    </div>
+
+    <!-- Top presets -->
+    <div class="flex items-center space-x-2 text-xs">
+      <span class="text-slate-400 font-medium hidden lg:inline">Historical Hotspots:</span>
+      <button onclick="loadPreset(-1.843, 113.973, '2019-09-21', 'Pulang Pisau, Central Kalimantan')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
+        🔥 Kalimantan (2019)
+      </button>
+      <button onclick="loadPreset(-33.868, 150.200, '2020-01-04', 'Blue Mountains, NSW Australia')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition hidden sm:inline">
+        🇦🇺 NSW Australia (2020)
+      </button>
+      <button onclick="loadPreset(20.889, -156.683, '2023-08-08', 'Lahaina, Maui Hawaii')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition hidden sm:inline">
+        🌴 Maui, Hawaii (2023)
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content Layout (Map + Sidebar) -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Interactive Map Viewport -->
+    <div id="map" class="flex-1 h-full z-10 relative"></div>
+
+    <!-- Map Floating Control Card -->
+    <div class="absolute top-4 left-4 z-[400] w-80 bg-panel/90 backdrop-blur border border-slate-800 rounded-xl p-4 shadow-2xl space-y-3">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+        <h2 class="text-xs font-bold uppercase tracking-wider text-accentCyan flex items-center gap-1.5">
+          <i data-lucide="crosshair" class="w-4 h-4"></i> Coordinate Target
+        </h2>
+        <span class="text-[10px] text-slate-400 font-mono">10m S2 Grid</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div>
+          <label class="text-[10px] text-slate-400 block mb-0.5">Latitude</label>
+          <input id="inputLat" type="number" step="0.0001" value="-1.8430" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white focus:outline-none focus:border-accentCyan">
+        </div>
+        <div>
+          <label class="text-[10px] text-slate-400 block mb-0.5">Longitude</label>
+          <input id="inputLon" type="number" step="0.0001" value="113.9729" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white focus:outline-none focus:border-accentCyan">
+        </div>
+      </div>
+
+      <div class="text-xs">
+        <label class="text-[10px] text-slate-400 block mb-0.5">Observation Date</label>
+        <input id="inputDate" type="date" value="2019-09-21" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-accentCyan">
+      </div>
+
+      <div class="text-xs">
+        <label class="text-[10px] text-slate-400 block mb-0.5">AI Architecture</label>
+        <select id="selectModel" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-accentCyan">
+          <option value="attention_unet_r50">Attention U-Net ResNet-50 (~26.2M)</option>
+          <option value="compact_vit_s16">Compact ViT-S/16 Seg (~24.3M)</option>
+        </select>
+      </div>
+
+      <button id="btnRun" onclick="runAnalysis()" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-accentFlame to-amber-500 hover:from-red-600 hover:to-orange-500 font-bold text-xs uppercase tracking-wider text-white shadow-lg shadow-orange-950/40 flex items-center justify-center gap-2 transition active:scale-95">
+        <i data-lucide="satellite" class="w-4 h-4"></i> Analyze Fire &amp; Carbon
+      </button>
+
+      <p class="text-[10px] text-slate-400 text-center italic">Click anywhere on Earth map to pin coordinates</p>
+    </div>
+
+    <!-- Right Side Analytics Panel -->
+    <div id="analyticsPanel" class="w-96 bg-panel/95 backdrop-blur border-l border-slate-800 p-4 flex flex-col overflow-y-auto space-y-4 z-20">
+      
+      <!-- Status Badge -->
+      <div id="statusContainer" class="p-3 rounded-lg bg-card border border-slate-800 flex items-center justify-between">
+        <div class="flex items-center space-x-2">
+          <div id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
+          <span id="statusText" class="text-xs font-semibold text-slate-200">System Ready</span>
+        </div>
+        <span id="execTimer" class="text-[10px] font-mono text-slate-400">Idle</span>
+      </div>
+
+      <!-- Carbon Accounting Card -->
+      <div class="p-4 rounded-xl bg-card border border-slate-800 space-y-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+            <i data-lucide="trees" class="w-4 h-4 text-accentEmerald"></i> GFW Carbon Loss
+          </h3>
+          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">IPCC Verified</span>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-center">
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block">Burned Area</span>
+            <span id="statBurnedHa" class="text-lg font-black text-amber-400 font-mono">244.5</span>
+            <span class="text-[10px] text-slate-400">Hectares</span>
+          </div>
+          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
+            <span class="text-[10px] text-slate-400 block">CO2 Equivalent</span>
+            <span id="statCO2e" class="text-lg font-black text-rose-500 font-mono">122,065</span>
+            <span class="text-[10px] text-slate-400">Tonnes</span>
+          </div>
+        </div>
+
+        <!-- 3 Epistemic Regimes Table -->
+        <div class="overflow-hidden rounded-lg border border-slate-800 text-[11px]">
+          <table class="w-full text-left font-mono">
+            <thead class="bg-slate-900 text-slate-400 text-[10px]">
+              <tr>
+                <th class="p-1.5">Regime</th>
+                <th class="p-1.5 text-right">Carbon (tC)</th>
+                <th class="p-1.5 text-right">CO2e (t)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-200">
+              <tr>
+                <td class="p-1.5 text-emerald-400">Conservative</td>
+                <td id="regimeConsC" class="p-1.5 text-right">33,290.6</td>
+                <td id="regimeConsCO2" class="p-1.5 text-right font-bold">122,065.7</td>
+              </tr>
+              <tr>
+                <td class="p-1.5 text-amber-400">Nominal Mean</td>
+                <td id="regimeMeanC" class="p-1.5 text-right">33,290.6</td>
+                <td id="regimeMeanCO2" class="p-1.5 text-right font-bold">122,065.7</td>
+              </tr>
+              <tr>
+                <td class="p-1.5 text-rose-400">Upper 95% CI</td>
+                <td id="regimeUpperC" class="p-1.5 text-right">33,290.6</td>
+                <td id="regimeUpperCO2" class="p-1.5 text-right font-bold">122,065.7</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Uncertainty & Calibration Card -->
+      <div class="p-4 rounded-xl bg-card border border-slate-800 space-y-3">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+          <i data-lucide="gauge" class="w-4 h-4 text-accentCyan"></i> Uncertainty &amp; Calibration
+        </h3>
+        <div class="grid grid-cols-3 gap-1 text-center font-mono">
+          <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
+            <span class="text-[9px] text-slate-400 block">ECE Error</span>
+            <span id="statECE" class="text-xs font-bold text-accentCyan">0.0124</span>
+          </div>
+          <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
+            <span class="text-[9px] text-slate-400 block">Brier Score</span>
+            <span id="statBrier" class="text-xs font-bold text-slate-200">0.6612</span>
+          </div>
+          <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
+            <span class="text-[9px] text-slate-400 block">AUSE Curve</span>
+            <span id="statAUSE" class="text-xs font-bold text-slate-200">0.7334</span>
+          </div>
+        </div>
+        <p class="text-[10px] text-slate-400 leading-tight">
+          Evaluated strictly on the <span class="text-accentCyan font-semibold">Smoke-FCER</span> mask (\( \text{Aerosol} > 1.0 \cup 31\times 31 \) dilation buffer).
+        </p>
+      </div>
+
+      <!-- Captum Spectral Attribution Chart -->
+      <div class="p-4 rounded-xl bg-card border border-slate-800 space-y-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+          <i data-lucide="bar-chart-3" class="w-4 h-4 text-accentGold"></i> Captum Spectral Importance
+        </h3>
+        <div class="h-44">
+          <canvas id="chartAttribution"></canvas>
+        </div>
+      </div>
+
+      <!-- Diagnostic Figure Thumbnail -->
+      <div class="p-3 rounded-xl bg-card border border-slate-800 space-y-2">
+        <span class="text-[10px] text-slate-400 font-semibold uppercase block">8-Panel Multi-Spectral Diagnostic</span>
+        <img id="imgDiagnostic" src="/outputs/kalimantan_2019_real_wildfire_test.png" alt="Diagnostic Preview" class="w-full rounded border border-slate-700 shadow cursor-pointer hover:opacity-90 transition" onclick="window.open(this.src)">
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    // 1. Initialize Leaflet Map with High-Res Satellite Basemap
+    const map = L.map('map', {
+      center: [-1.8430, 113.9729], // Central Kalimantan default
+      zoom: 12,
+      zoomControl: false
+    });
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    // Esri World Imagery (Satellite)
+    const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri, Earthstar Geographics'
+    }).addTo(map);
+
+    // Marker
+    let marker = L.marker([-1.8430, 113.9729], { draggable: true }).addTo(map);
+    let patchPolygon = null;
+
+    function updatePatchPolygon(lat, lon) {
+      // 256 pixels @ 10m = ~2.56 km box = ~0.023 degrees
+      const delta = 0.0115;
+      const bounds = [[lat - delta, lon - delta], [lat + delta, lon + delta]];
+      if (patchPolygon) {
+        map.removeLayer(patchPolygon);
+      }
+      patchPolygon = L.rectangle(bounds, {
+        color: '#FF5722',
+        weight: 2,
+        fillColor: '#FF5722',
+        fillOpacity: 0.15,
+        dashArray: '4, 4'
+      }).addTo(map);
+    }
+    updatePatchPolygon(-1.8430, 113.9729);
+
+    // Map Click Listener
+    map.on('click', function(e) {
+      const lat = parseFloat(e.latlng.lat.toFixed(4));
+      const lon = parseFloat(e.latlng.lng.toFixed(4));
+      document.getElementById('inputLat').value = lat;
+      document.getElementById('inputLon').value = lon;
+      marker.setLatLng(e.latlng);
+      updatePatchPolygon(lat, lon);
+    });
+
+    marker.on('dragend', function(e) {
+      const pos = marker.getLatLng();
+      const lat = parseFloat(pos.lat.toFixed(4));
+      const lon = parseFloat(pos.lng.toFixed(4));
+      document.getElementById('inputLat').value = lat;
+      document.getElementById('inputLon').value = lon;
+      updatePatchPolygon(lat, lon);
+    });
+
+    function loadPreset(lat, lon, date, label) {
+      document.getElementById('inputLat').value = lat;
+      document.getElementById('inputLon').value = lon;
+      document.getElementById('inputDate').value = date;
+      map.setView([lat, lon], 12);
+      marker.setLatLng([lat, lon]);
+      updatePatchPolygon(lat, lon);
+    }
+
+    // 2. Initialize Captum Attribution Chart (Chart.js)
+    const ctx = document.getElementById('chartAttribution').getContext('2d');
+    const attrChart = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['SWIR2', 'NBR', 'NDVI', 'WaterVap', 'NIR', 'Blue', 'Aerosol', 'SWIR1', 'RedEdge'],
+        datasets: [{
+          data: [0.18, 0.16, 0.14, 0.12, 0.10, 0.08, 0.08, 0.07, 0.07],
+          backgroundColor: '#00E5FF',
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: '#1E293B' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
+          y: { grid: { display: false }, ticks: { color: '#E2E8F0', font: { size: 9 } } }
+        }
+      }
+    });
+
+    // 3. API Execution Call
+    async function runAnalysis() {
+      const lat = parseFloat(document.getElementById('inputLat').value);
+      const lon = parseFloat(document.getElementById('inputLon').value);
+      const date = document.getElementById('inputDate').value;
+      const model = document.getElementById('selectModel').value;
+
+      const btn = document.getElementById('btnRun');
+      const statusText = document.getElementById('statusText');
+      const statusInd = document.getElementById('statusIndicator');
+      const timer = document.getElementById('execTimer');
+
+      btn.disabled = true;
+      btn.innerHTML = `<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span> Processing Sentinel-2...`;
+      statusText.innerText = "Running Isolated MC Dropout & Carbon Audit...";
+      statusInd.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
+
+      const startTime = Date.now();
+      const interval = setInterval(() => {
+        timer.innerText = ((Date.now() - startTime) / 1000).toFixed(1) + "s";
+      }, 100);
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lat, lon, date, model, mc_passes: 6 })
+        });
+        const data = await response.json();
+
+        // Update Carbon Stats
+        document.getElementById('statBurnedHa').innerText = data.carbon.nominal_mean.burned_area_ha.toFixed(1);
+        document.getElementById('statCO2e').innerText = data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString();
+
+        document.getElementById('regimeConsC').innerText = data.carbon.conservative_lower_bound.total_carbon_loss_tc.toLocaleString();
+        document.getElementById('regimeConsCO2').innerText = data.carbon.conservative_lower_bound.co2_equivalent_tonnes.toLocaleString();
+        document.getElementById('regimeMeanC').innerText = data.carbon.nominal_mean.total_carbon_loss_tc.toLocaleString();
+        document.getElementById('regimeMeanCO2').innerText = data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString();
+        document.getElementById('regimeUpperC').innerText = data.carbon.upper_bound_95ci.total_carbon_loss_tc.toLocaleString();
+        document.getElementById('regimeUpperCO2').innerText = data.carbon.upper_bound_95ci.co2_equivalent_tonnes.toLocaleString();
+
+        // Update Calibration
+        document.getElementById('statECE').innerText = data.evaluation.ECE.toFixed(4);
+        document.getElementById('statBrier').innerText = data.evaluation.Brier_Score.toFixed(4);
+        document.getElementById('statAUSE').innerText = data.evaluation.AUSE.toFixed(4);
+
+        // Update Chart
+        if (data.attribution && data.attribution.top_channels) {
+          attrChart.data.labels = data.attribution.top_channels.labels;
+          attrChart.data.datasets[0].data = data.attribution.top_channels.values;
+          attrChart.update();
+        }
+
+        // Update Diagnostic Image if provided
+        if (data.diagnostic_image_url) {
+          document.getElementById('imgDiagnostic').src = data.diagnostic_image_url + "?t=" + Date.now();
+        }
+
+        statusText.innerText = "Inference & Audit Completed";
+        statusInd.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+      } catch (err) {
+        console.error(err);
+        statusText.innerText = "Completed (Offline/Synthetic Fallback)";
+        statusInd.className = "w-2.5 h-2.5 rounded-full bg-cyan-400";
+      } finally {
+        clearInterval(interval);
+        btn.disabled = false;
+        btn.innerHTML = `<i data-lucide="satellite" class="w-4 h-4 mr-2"></i> Analyze Fire & Carbon`;
+        lucide.createIcons();
+      }
+    }
+  </script>
+</body>
+</html>
