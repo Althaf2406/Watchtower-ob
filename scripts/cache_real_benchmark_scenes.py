@@ -58,6 +58,16 @@ SCENES = {
         "row_10m": 7650,
         "col_10m": 4200,
     },
+    "surabaya_2023": {
+        "title": "Keputih Sukolilo Savanna Wildfire, Surabaya Timur",
+        "date": "2023-09-30",
+        "base_url": "https://sentinel-cogs.s3.us-west-2.amazonaws.com/sentinel-s2-l2a-cogs/49/M/FM/2023/9/S2B_49MFM_20230930_0_L2A",
+        "center_lon": 112.7950,
+        "center_lat": -7.2920,
+        "crs": "EPSG:32749",
+        "row_10m": 644,
+        "col_10m": 9816,
+    },
 }
 
 

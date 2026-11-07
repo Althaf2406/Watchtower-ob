@@ -173,11 +173,15 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
 
     # Check proximity to real historical satellite disaster benchmarks
     is_kalimantan = (abs(lat - (-1.843)) < 0.25) and (abs(lon - 113.973) < 0.25)
+    is_surabaya = (abs(lat - (-7.30)) < 0.20) and (abs(lon - 112.78) < 0.20)
     is_maui = (abs(lat - 20.878) < 0.20) and (abs(lon - (-156.677)) < 0.20)
     is_australia = (abs(lat - (-33.682)) < 0.35) and (abs(lon - 150.285) < 0.35)
 
     if is_kalimantan:
         scene_key = "kalimantan_2019"
+        bench_path = benchmarks_dir / f"{scene_key}.npz"
+    elif is_surabaya:
+        scene_key = "surabaya_2023"
         bench_path = benchmarks_dir / f"{scene_key}.npz"
     elif is_maui:
         scene_key = "maui_2023"
@@ -231,9 +235,9 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
     if scene_key == "kalimantan_2019":
         # Peat fires penetrate dense smoke haze at high SWIR reflectance
         coarse_hotspots = (s2_12bands[11] > 2500).astype(np.uint8)
-    elif scene_key in ("maui_2023", "australia_2020"):
+    elif scene_key in ("maui_2023", "australia_2020", "surabaya_2023"):
         # Vegetation canopy loss & charcoal reflectance
-        coarse_hotspots = (nbr < -0.12).astype(np.uint8)
+        coarse_hotspots = (nbr < -0.10).astype(np.uint8)
     else:
         # Safe / unburned coordinate check
         coarse_hotspots = ((s2_12bands[11] > 3200) & (nbr < -0.20)).astype(np.uint8)
