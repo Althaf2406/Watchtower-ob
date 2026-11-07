@@ -85,6 +85,14 @@ class AnalysisRequest(BaseModel):
     mc_passes: int = 4
 
 
+def stretch_band_to_uint8(band: np.ndarray, p_low: float = 2.0, p_high: float = 98.0) -> np.ndarray:
+    """Apply remote sensing percentile contrast stretching to satellite band."""
+    lo, hi = np.percentile(band, (p_low, p_high))
+    if hi <= lo:
+        hi = lo + 1.0
+    return np.clip((band - lo) / (hi - lo) * 255.0, 0, 255).astype(np.uint8)
+
+
 def generate_raster_mask_image(pred_mask: np.ndarray, out_path: Path) -> str:
     """Generate a transparent RGBA PNG mask from the 2D prediction for Leaflet raster overlay."""
     h, w = pred_mask.shape
@@ -379,6 +387,24 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         geojson_data = {"type": "FeatureCollection", "features": []}
         mask_png_url = None
 
+    # 7. Real Satellite Imagery Overlay by Date (Natural RGB & False Color SWIR)
+    sat_img_dir = assets_dir / "satellite_imagery"
+    sat_img_dir.mkdir(parents=True, exist_ok=True)
+    if scene_key:
+        img_type = "pre" if temporal_status == "pre_fire" else "peak"
+        sat_rel_url = f"/assets/satellite_imagery/{scene_key}_{img_type}.png"
+        sat_fc_rel_url = f"/assets/satellite_imagery/{scene_key}_peak_falsecolor.png" if temporal_status == "active_fire" else sat_rel_url
+    else:
+        # Custom Coordinate: contrast-stretched Sentinel-2 RGB composite
+        r_nat = stretch_band_to_uint8(s2_12bands[3])
+        g_nat = stretch_band_to_uint8(s2_12bands[2])
+        b_nat = stretch_band_to_uint8(s2_12bands[1])
+        rgb_nat = np.stack([r_nat, g_nat, b_nat], axis=-1)
+        custom_sat_path = outputs_dir / f"custom_sat_{temporal_status}.png"
+        Image.fromarray(rgb_nat).save(custom_sat_path)
+        sat_rel_url = f"/outputs/{custom_sat_path.name}"
+        sat_fc_rel_url = sat_rel_url
+
     # Calculate actual bounding box in WGS84 for Leaflet
     to_wgs84 = Transformer.from_crs(crs, "EPSG:4326", always_xy=True).transform
     p1 = shapely_transform(to_wgs84, shape({"type": "Point", "coordinates": [transform.c, transform.f]}))
@@ -411,6 +437,8 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         },
         "geojson": geojson_data,
         "mask_overlay_url": mask_png_url,
+        "satellite_imagery_url": sat_rel_url,
+        "satellite_falsecolor_url": sat_fc_rel_url,
         "bbox": bbox_wgs84,
         "diagnostic_image_url": diagnostic_img,
     }

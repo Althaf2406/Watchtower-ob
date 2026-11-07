@@ -196,6 +196,24 @@
         </select>
       </div>
 
+      <!-- Real Satellite Imagery Layer Control -->
+      <div class="text-xs pt-2 border-t border-slate-800 space-y-1.5">
+        <div class="flex items-center justify-between text-[10px]">
+          <span class="text-slate-400 font-semibold flex items-center gap-1">
+            <i data-lucide="image" class="w-3 h-3 text-accentCyan"></i> Satellite Tile (AOI)
+          </span>
+          <span id="satImageryInfo" class="text-[9px] font-mono text-emerald-400">Sentinel-2 10m</span>
+        </div>
+        <div class="grid grid-cols-2 gap-1.5">
+          <button id="btnSatNatural" type="button" onclick="setSatelliteMode('natural')" class="py-1 px-1.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700 text-[10px] font-semibold transition text-center cursor-pointer">
+            🌿 Natural RGB
+          </button>
+          <button id="btnSatFalse" type="button" onclick="setSatelliteMode('falsecolor')" class="py-1 px-1.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] transition text-center cursor-pointer">
+            🛰️ SWIR Fire Glow
+          </button>
+        </div>
+      </div>
+
       <button id="btnRun" onclick="runAnalysis()" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-accentFlame to-amber-500 hover:from-red-600 hover:to-orange-500 font-bold text-xs uppercase tracking-wider text-white shadow-lg shadow-orange-950/40 flex items-center justify-center gap-2 transition active:scale-95">
         <i data-lucide="satellite" class="w-4 h-4"></i> Analyze Fire &amp; Carbon
       </button>
@@ -353,20 +371,56 @@
     esriSat.addTo(map);
 
     // Layer Groups
+    const satelliteTileGroup = L.layerGroup().addTo(map);
     const fireOverlayGroup = L.featureGroup().addTo(map);
     const patchGroup = L.layerGroup().addTo(map);
 
     // Basemap & Overlay Switcher Control
     const baseLayers = {
-      "🛰️ Satellite Imagery": esriSat,
+      "🛰️ Esri Satellite Basemap": esriSat,
       "🌑 Carto Dark Matter": cartoDark,
       "🗺️ Street Map": osm
     };
     const overlayLayers = {
-      "🔥 Wildfire & Smoke Layers": fireOverlayGroup,
+      "🛰️ Sentinel-2 Satellite Tile (By Date)": satelliteTileGroup,
+      "🔥 Wildfire AI & Smoke Layers": fireOverlayGroup,
       "🔲 10m Sentinel-2 Patch Grid": patchGroup
     };
     L.control.layers(baseLayers, overlayLayers, { position: 'topright' }).addTo(map);
+
+    // Satellite Imagery State & Render Helpers
+    window.satelliteMode = 'natural';
+    window.currentSatUrl = null;
+    window.currentSatFCUrl = null;
+    window.currentSatBBox = null;
+
+    function setSatelliteMode(mode) {
+      window.satelliteMode = mode;
+      const btnNat = document.getElementById('btnSatNatural');
+      const btnFc = document.getElementById('btnSatFalse');
+      if (mode === 'natural') {
+        if (btnNat) btnNat.className = "py-1 px-1.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700 text-[10px] font-semibold transition text-center cursor-pointer";
+        if (btnFc) btnFc.className = "py-1 px-1.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] transition text-center cursor-pointer";
+      } else {
+        if (btnFc) btnFc.className = "py-1 px-1.5 rounded bg-amber-950/80 text-amber-300 border border-amber-700 text-[10px] font-semibold transition text-center cursor-pointer";
+        if (btnNat) btnNat.className = "py-1 px-1.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] transition text-center cursor-pointer";
+      }
+      renderSatelliteOverlay();
+    }
+
+    function renderSatelliteOverlay() {
+      satelliteTileGroup.clearLayers();
+      if (!window.currentSatBBox) return;
+      const url = (window.satelliteMode === 'falsecolor' && window.currentSatFCUrl) ? window.currentSatFCUrl : window.currentSatUrl;
+      if (url) {
+        const satLayer = L.imageOverlay(url + "?t=" + Date.now(), window.currentSatBBox, {
+          opacity: 0.95,
+          interactive: false,
+          zIndex: 5
+        });
+        satelliteTileGroup.addLayer(satLayer);
+      }
+    }
 
     // Marker & AOI Patch Box
     let marker = L.marker([-1.8430, 113.9729], { draggable: true }).addTo(map);
@@ -557,6 +611,27 @@
           document.getElementById('imgDiagnostic').src = data.diagnostic_image_url + "?t=" + Date.now();
         }
 
+        // Render Real Sentinel-2 Satellite Imagery on the Map for this AOI (Date-Synchronized)
+        window.currentSatUrl = data.satellite_imagery_url;
+        window.currentSatFCUrl = data.satellite_falsecolor_url;
+        window.currentSatBBox = data.bbox;
+        renderSatelliteOverlay();
+
+        // Update Satellite Imagery Status Info in UI
+        const satInfo = document.getElementById('satImageryInfo');
+        if (satInfo) {
+          if (data.temporal_status === 'pre_fire') {
+            satInfo.innerText = "🟢 Pre-Fire S2 (Lush/Unburned)";
+            satInfo.className = "text-[9px] font-mono text-emerald-400";
+          } else if (data.temporal_status === 'active_fire') {
+            satInfo.innerText = "🔥 Active Fire S2 (Charred/Smoke)";
+            satInfo.className = "text-[9px] font-mono text-red-400";
+          } else {
+            satInfo.innerText = "🌱 Post-Fire S2 (Recovery)";
+            satInfo.className = "text-[9px] font-mono text-blue-400";
+          }
+        }
+
         // 4. Render Real GIS Wildfire & Smoke Layers on Leaflet Map
         fireOverlayGroup.clearLayers();
         if (window.rasterMaskLayer) {
@@ -640,6 +715,9 @@
           mapToast.classList.remove('hidden');
         } else {
           // Zero fire detected (Safe / unburned coordinate / pre-fire baseline)
+          if (data.bbox) {
+            map.flyToBounds(data.bbox, { padding: [60, 60], duration: 1.0 });
+          }
           document.getElementById('toastMain').innerText = data.temporal_message || `🟢 No Wildfire Detected (${data.observation_date})`;
           document.getElementById('toastSub').innerText = `Vegetasi normal utuh (0.0 ha terbakar). Nihil anomali termal SWIR | Model: ${data.model_architecture}`;
           mapToast.className = "absolute top-4 right-16 z-[400] bg-panel/90 backdrop-blur border border-emerald-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all";
