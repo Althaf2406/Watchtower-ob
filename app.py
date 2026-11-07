@@ -179,11 +179,11 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
     active_model = _vit_model if "vit" in model_choice else _unet_model
     mc_passes = max(2, min(req.mc_passes, 8))
 
-    # Check proximity to real historical satellite disaster benchmarks
-    is_kalimantan = (abs(lat - (-1.843)) < 0.25) and (abs(lon - 113.973) < 0.25)
-    is_surabaya = (abs(lat - (-7.30)) < 0.20) and (abs(lon - 112.78) < 0.20)
-    is_maui = (abs(lat - 20.878) < 0.20) and (abs(lon - (-156.677)) < 0.20)
-    is_australia = (abs(lat - (-33.682)) < 0.35) and (abs(lon - 150.285) < 0.35)
+    # Check proximity to real historical satellite disaster benchmarks (< 0.02 deg ~ 2 km patch radius)
+    is_kalimantan = (abs(lat - (-1.8430)) < 0.02) and (abs(lon - 113.9729) < 0.02)
+    is_surabaya = (abs(lat - (-7.2920)) < 0.02) and (abs(lon - 112.7950) < 0.02)
+    is_maui = (abs(lat - 20.8783) < 0.02) and (abs(lon - (-156.6770)) < 0.02)
+    is_australia = (abs(lat - (-33.6820)) < 0.02) and (abs(lon - 150.2850) < 0.02)
 
     BENCHMARK_TIMELINES = {
         "kalimantan_2019": {
@@ -406,10 +406,14 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         sat_fc_rel_url = sat_rel_url
 
     # Calculate actual bounding box in WGS84 for Leaflet
-    to_wgs84 = Transformer.from_crs(crs, "EPSG:4326", always_xy=True).transform
-    p1 = shapely_transform(to_wgs84, shape({"type": "Point", "coordinates": [transform.c, transform.f]}))
-    p2 = shapely_transform(to_wgs84, shape({"type": "Point", "coordinates": [transform.c + transform.a * 256, transform.f + transform.e * 256]}))
-    bbox_wgs84 = [[min(p1.y, p2.y), min(p1.x, p2.x)], [max(p1.y, p2.y), max(p1.x, p2.x)]]
+    if scene_key and "32" in crs:
+        to_wgs84 = Transformer.from_crs(crs, "EPSG:4326", always_xy=True).transform
+        p1 = shapely_transform(to_wgs84, shape({"type": "Point", "coordinates": [transform.c, transform.f]}))
+        p2 = shapely_transform(to_wgs84, shape({"type": "Point", "coordinates": [transform.c + transform.a * 256, transform.f + transform.e * 256]}))
+        bbox_wgs84 = [[min(p1.y, p2.y), min(p1.x, p2.x)], [max(p1.y, p2.y), max(p1.x, p2.x)]]
+    else:
+        delta = 0.0115
+        bbox_wgs84 = [[lat - delta, lon - delta], [lat + delta, lon + delta]]
 
     return {
         "status": "success",

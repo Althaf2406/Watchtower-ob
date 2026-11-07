@@ -184,7 +184,7 @@
       </div>
 
       <!-- Surabaya Preset -->
-      <button onclick="loadPreset(-7.292, 112.795, '2023-09-30', 'Keputih Sukolilo, Surabaya Timur')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-flameOrange/70 px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_rgba(255,87,34,0.4)] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
+      <button onclick="loadPreset(-7.2920, 112.7950, '2023-09-30', 'Keputih Sukolilo, Surabaya Timur')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-flameOrange/70 px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_rgba(255,87,34,0.4)] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
         <div class="unskew-persona flex items-center space-x-1.5">
           <span class="font-display text-base text-flameAmber group-hover:text-starkWhite">01</span>
           <span class="font-display text-sm tracking-wider">🌾 SURABAYA</span>
@@ -192,7 +192,7 @@
       </button>
 
       <!-- Kalimantan Preset -->
-      <button onclick="loadPreset(-1.843, 113.973, '2019-09-21', 'Pulang Pisau, Central Kalimantan')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
+      <button onclick="loadPreset(-1.8430, 113.9729, '2019-09-21', 'Pulang Pisau Peatland, Central Kalimantan')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
         <div class="unskew-persona flex items-center space-x-1.5">
           <span class="font-display text-base text-laserCyan group-hover:text-starkWhite">02</span>
           <span class="font-display text-sm tracking-wider">🔥 KALIMANTAN</span>
@@ -200,7 +200,7 @@
       </button>
 
       <!-- Maui Preset -->
-      <button onclick="loadPreset(20.889, -156.683, '2023-08-08', 'Lahaina, Maui Hawaii')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden sm:inline-block">
+      <button onclick="loadPreset(20.8783, -156.6770, '2023-08-13', 'Lahaina Coastal Wildfire, Maui Hawaii')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden sm:inline-block">
         <div class="unskew-persona flex items-center space-x-1.5">
           <span class="font-display text-base text-slate-400 group-hover:text-starkWhite">03</span>
           <span class="font-display text-sm tracking-wider">🌴 MAUI</span>
@@ -208,7 +208,7 @@
       </button>
 
       <!-- Australia Preset -->
-      <button onclick="loadPreset(-33.868, 150.200, '2020-01-04', 'Blue Mountains, NSW Australia')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden md:inline-block">
+      <button onclick="loadPreset(-33.6820, 150.2850, '2020-01-10', 'Blue Mountains Megablaze, NSW Australia')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden md:inline-block">
         <div class="unskew-persona flex items-center space-x-1.5">
           <span class="font-display text-base text-slate-400 group-hover:text-starkWhite">04</span>
           <span class="font-display text-sm tracking-wider">🇦🇺 NSW</span>
@@ -620,6 +620,15 @@
       document.getElementById('inputLon').value = lon;
       marker.setLatLng(e.latlng);
       updatePatchPolygon(lat, lon);
+      
+      // Clear previous analysis overlays so there is NO detached ghost box
+      fireOverlayGroup.clearLayers();
+      satelliteTileGroup.clearLayers();
+      if (window.rasterMaskLayer) {
+        map.removeLayer(window.rasterMaskLayer);
+        window.rasterMaskLayer = null;
+      }
+      
       document.getElementById('locationTitle').innerHTML = `
         <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
         <span class="truncate">Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)</span>
@@ -635,6 +644,15 @@
       document.getElementById('inputLat').value = lat;
       document.getElementById('inputLon').value = lon;
       updatePatchPolygon(lat, lon);
+      
+      // Clear previous analysis overlays so there is NO detached ghost box
+      fireOverlayGroup.clearLayers();
+      satelliteTileGroup.clearLayers();
+      if (window.rasterMaskLayer) {
+        map.removeLayer(window.rasterMaskLayer);
+        window.rasterMaskLayer = null;
+      }
+
       document.getElementById('locationTitle').innerHTML = `
         <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
         <span class="truncate">Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)</span>
