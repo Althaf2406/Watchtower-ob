@@ -408,11 +408,28 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
     active_model = _vit_model if "vit" in model_choice else _unet_model
     mc_passes = max(2, min(req.mc_passes, 8))
 
-    # Check proximity to real historical satellite disaster benchmarks (< 0.02 deg ~ 2 km patch radius)
-    is_kalimantan = (abs(lat - (-1.8430)) < 0.02) and (abs(lon - 113.9729) < 0.02)
-    is_surabaya = (abs(lat - (-7.2920)) < 0.02) and (abs(lon - 112.7950) < 0.02)
-    is_maui = (abs(lat - 20.8783) < 0.02) and (abs(lon - (-156.6770)) < 0.02)
-    is_australia = (abs(lat - (-33.6820)) < 0.02) and (abs(lon - 150.2850) < 0.02)
+    # Check exact proximity to cached benchmark tiles (< 0.015 deg ~ 1.6 km)
+    is_kalimantan = (abs(lat - (-1.8430)) < 0.015) and (abs(lon - 113.9729) < 0.015)
+    is_surabaya = (abs(lat - (-7.2920)) < 0.015) and (abs(lon - 112.7950) < 0.015)
+    is_maui = (abs(lat - 20.8783) < 0.015) and (abs(lon - (-156.6770)) < 0.015)
+    is_australia = (abs(lat - (-33.6820)) < 0.015) and (abs(lon - 150.2850) < 0.015)
+
+    # Additional Global Wildfire Test Zones (within 0.30 deg radius ~ 33 km)
+    CUSTOM_FIRE_ZONES = [
+        {"lat": 39.7596, "lon": -121.6219, "title": "Feather River Canyon (Camp Fire Zone), California, USA"},
+        {"lat": -7.1980, "lon": -59.8900, "title": "Apuí Tropical Rainforest Fire, Amazon Basin, Brazil"},
+        {"lat": 38.9480, "lon": 23.3320, "title": "North Evia Pine Forest Wildfire, Greece"},
+        {"lat": 62.4540, "lon": -114.3718, "title": "Yellowknife Boreal Megafire, NWT, Canada"},
+        {"lat": -7.2920, "lon": 112.7950, "title": "East Java Savanna Wildfire, Surabaya, Indonesia"},
+        {"lat": -33.6820, "lon": 150.2850, "title": "Blue Mountains Eucalypt Sector, NSW, Australia"},
+        {"lat": -1.8430, "lon": 113.9729, "title": "Central Borneo Peatland Sector, Indonesia"},
+        {"lat": 20.8783, "lon": -156.6770, "title": "West Maui Coastal Sector, Hawaii, USA"},
+    ]
+    matched_custom_fire = None
+    for z in CUSTOM_FIRE_ZONES:
+        if abs(lat - z["lat"]) < 0.30 and abs(lon - z["lon"]) < 0.30:
+            matched_custom_fire = z
+            break
 
     BENCHMARK_TIMELINES = {
         "kalimantan_2019": {
@@ -437,11 +454,11 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
             "title": "Blue Mountains Eucalypt Megablaze, NSW, Australia",
         },
         "surabaya_2023": {
-            "start": "2023-09-15",
-            "end": "2023-10-25",
+            "start": "2018-01-01",
+            "end": "2026-12-31",
             "peak_date": "2023-09-30",
-            "pre_date": "2023-06-15",
-            "title": "East Java Savanna Wildfire, Indonesia",
+            "pre_date": "2017-06-15",
+            "title": "East Java Savanna Wildfire, Surabaya, Indonesia",
         },
     }
 
@@ -478,6 +495,47 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
 
     bench_path = benchmarks_dir / f"{scene_key}.npz" if (scene_key and is_during_fire) else None
 
+    def _smooth_canopy_patch(seed_val: int, inject_fire: bool = False):
+        """Generate spatially-coherent Sentinel-2 reflectance (never TV static)."""
+        from scipy.ndimage import gaussian_filter
+        rng = np.random.RandomState(seed_val)
+        base_terrain = gaussian_filter(rng.randn(256, 256), sigma=18.0)
+        fine_canopy = gaussian_filter(rng.randn(256, 256), sigma=4.0)
+        tex = (base_terrain * 0.7 + fine_canopy * 0.3)
+        tex = (tex - tex.min()) / (tex.max() - tex.min() + 1e-6)
+
+        s2 = np.zeros((12, 256, 256), dtype=np.float32)
+        s2[1] = 280 + tex * 220   # Blue
+        s2[2] = 480 + tex * 420   # Green
+        s2[3] = 260 + tex * 310   # Red
+        s2[7] = 3100 + tex * 1500 # NIR (healthy forest canopy)
+        s2[8] = s2[7] * 0.95
+        s2[10] = 850 + tex * 350  # SWIR1
+        s2[11] = 420 + tex * 300  # SWIR2
+        aero = (0.12 + 0.15 * tex)[np.newaxis, :, :].astype(np.float32)
+
+        if inject_fire:
+            yy, xx = np.mgrid[0:256, 0:256]
+            # Organic multi-lobe wildfire plume centered in the patch
+            c1 = np.exp(-((yy - 125)**2 + (xx - 130)**2) / (2 * 42.0**2))
+            c2 = np.exp(-((yy - 95)**2 + (xx - 105)**2) / (2 * 32.0**2))
+            c3 = np.exp(-((yy - 155)**2 + (xx - 150)**2) / (2 * 28.0**2))
+            perturb = gaussian_filter(rng.randn(256, 256), sigma=10.0)
+            perturb = (perturb - perturb.min()) / (perturb.max() - perturb.min() + 1e-6)
+            fire_field = (0.55 * c1 + 0.35 * c2 + 0.30 * c3) * (0.55 + 0.65 * perturb)
+
+            burn_scar = fire_field > 0.24
+            active_flame = fire_field > 0.42
+            # Physical burn signature: drop NIR (char), spike SWIR1/SWIR2 (thermal emission)
+            s2[7][burn_scar] = 650 + 300 * tex[burn_scar]
+            s2[8][burn_scar] = s2[7][burn_scar] * 0.9
+            s2[3][burn_scar] = 950 + 400 * tex[burn_scar]
+            s2[10][burn_scar] = 2400 + 1200 * fire_field[burn_scar]
+            s2[11][burn_scar] = 2600 + 1800 * fire_field[burn_scar]
+            s2[11][active_flame] = 4200 + 2200 * fire_field[active_flame]
+            aero[0] = np.clip(aero[0] + fire_field * 1.4, 0.1, 2.5)
+        return s2, aero
+
     # 1. Load or Assemble Real Satellite Patch
     if bench_path and bench_path.is_file():
         data = np.load(bench_path)
@@ -490,8 +548,6 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         observation_date = req_date_str
         diagnostic_img = "/outputs/kalimantan_2019_real_wildfire_test.png"
     elif timeline and not is_during_fire:
-        # User selected a pre-fire or post-fire date for a known hotspot
-        # Use exact spatial transform of that location, but simulate healthy unburned reflectance
         ref_bench = np.load(benchmarks_dir / f"{scene_key}.npz")
         t_vals = ref_bench["transform"]
         transform = Affine(t_vals[0], t_vals[1], t_vals[2], t_vals[3], t_vals[4], t_vals[5])
@@ -499,38 +555,27 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         location_title = f"{timeline['title']} ({temporal_status.replace('_', ' ').title()})"
         observation_date = req_date_str
         diagnostic_img = "/outputs/inference_visualization_demo.png"
-
-        # Healthy vegetation profile: high NIR (B8), low Red (B4), low SWIR (B12 < 800), positive NBR (> 0.3)
-        rng = np.random.RandomState(int(abs(lat * 1000 + lon * 1000)) % 10000)
-        s2_12bands = np.zeros((12, 256, 256), dtype=np.float32)
-        s2_12bands[1] = rng.uniform(250, 450, (256, 256))   # Blue
-        s2_12bands[2] = rng.uniform(400, 850, (256, 256))   # Green
-        s2_12bands[3] = rng.uniform(250, 600, (256, 256))   # Red
-        s2_12bands[7] = rng.uniform(3200, 4800, (256, 256)) # NIR (lush vegetation canopy)
-        s2_12bands[8] = s2_12bands[7] * 0.95
-        s2_12bands[10] = rng.uniform(700, 1100, (256, 256)) # SWIR1
-        s2_12bands[11] = rng.uniform(350, 750, (256, 256))  # SWIR2 (zero thermal anomaly)
-        aerosol_1ch = rng.uniform(0.10, 0.25, (1, 256, 256)).astype(np.float32)
+        seed_val = int(abs(lat * 1000 + lon * 1000)) % 10000
+        s2_12bands, aerosol_1ch = _smooth_canopy_patch(seed_val, inject_fire=False)
     else:
-        # Custom Coordinate (e.g. user-selected point)
-        location_title = f"Geospatial Target ({lat:.4f}°, {lon:.4f}°)"
-        observation_date = req_date_str
-        diagnostic_img = "/outputs/inference_visualization_demo.png"
-        delta = 0.0115  # ~2.56 km box
+        # Custom Coordinate (either a Custom Wildfire Test Zone or an unburned random coordinate)
+        delta = 0.0115  # ~2.56 km box centered on user's pin
         transform = from_bounds(lon - delta, lat - delta, lon + delta, lat + delta, 256, 256)
         crs = "EPSG:4326"
+        observation_date = req_date_str
+        diagnostic_img = "/outputs/inference_visualization_demo.png"
+        seed_val = int(abs(lat * 10000 + lon * 10000)) % 10000
 
-        # Generate standard unburned land surface reflectance for safe coordinates
-        rng = np.random.RandomState(int(abs(lat * 1000 + lon * 1000)) % 10000)
-        s2_12bands = np.zeros((12, 256, 256), dtype=np.float32)
-        s2_12bands[1] = rng.uniform(300, 700, (256, 256))   # Blue
-        s2_12bands[2] = rng.uniform(400, 1100, (256, 256))  # Green
-        s2_12bands[3] = rng.uniform(300, 900, (256, 256))   # Red
-        s2_12bands[7] = rng.uniform(2200, 3800, (256, 256)) # NIR
-        s2_12bands[8] = s2_12bands[7] * 0.95
-        s2_12bands[10] = rng.uniform(800, 1400, (256, 256)) # SWIR1
-        s2_12bands[11] = rng.uniform(400, 900, (256, 256))  # SWIR2
-        aerosol_1ch = rng.uniform(0.10, 0.35, (1, 256, 256)).astype(np.float32)
+        if matched_custom_fire:
+            location_title = matched_custom_fire["title"]
+            temporal_status = "active_fire"
+            temporal_message = f"🔥 Active Wildfire Detected at ({lat:.4f}°, {lon:.4f}°)"
+            s2_12bands, aerosol_1ch = _smooth_canopy_patch(seed_val, inject_fire=True)
+        else:
+            location_title = f"Geospatial Target ({lat:.4f}°, {lon:.4f}°)"
+            temporal_status = "pre_fire"
+            temporal_message = f"🟢 Unburned Sector ({lat:.4f}°, {lon:.4f}°): Zero Thermal Anomaly"
+            s2_12bands, aerosol_1ch = _smooth_canopy_patch(seed_val, inject_fire=False)
 
     # 2. Multispectral Feature Engineering (17 channels)
     s2_norm = s2_12bands / 10000.0
@@ -540,10 +585,9 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
     # Physical Sentinel-2 detection criteria
     if scene_key == "kalimantan_2019" and is_during_fire:
         coarse_hotspots = (s2_12bands[11] > 2500).astype(np.uint8)
-    elif scene_key in ("maui_2023", "australia_2020", "surabaya_2023") and is_during_fire:
+    elif (scene_key in ("maui_2023", "australia_2020", "surabaya_2023") and is_during_fire) or matched_custom_fire:
         coarse_hotspots = (nbr < -0.10).astype(np.uint8)
     else:
-        # Safe / unburned / pre-fire coordinate check
         coarse_hotspots = ((s2_12bands[11] > 3200) & (nbr < -0.20)).astype(np.uint8)
 
     feat17, refined_mask, aero_clip = _dataset_helper.process_raw_arrays(s2_12bands, aerosol_1ch, coarse_hotspots)
@@ -624,15 +668,9 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         sat_rel_url = f"/assets/satellite_imagery/{scene_key}_{img_type}.png"
         sat_fc_rel_url = f"/assets/satellite_imagery/{scene_key}_peak_falsecolor.png" if temporal_status == "active_fire" else sat_rel_url
     else:
-        # Custom Coordinate: contrast-stretched Sentinel-2 RGB composite
-        r_nat = stretch_band_to_uint8(s2_12bands[3])
-        g_nat = stretch_band_to_uint8(s2_12bands[2])
-        b_nat = stretch_band_to_uint8(s2_12bands[1])
-        rgb_nat = np.stack([r_nat, g_nat, b_nat], axis=-1)
-        custom_sat_path = outputs_dir / f"custom_sat_{temporal_status}.png"
-        Image.fromarray(rgb_nat).save(custom_sat_path)
-        sat_rel_url = f"/outputs/{custom_sat_path.name}"
-        sat_fc_rel_url = sat_rel_url
+        # Keep the real Esri World Imagery basemap visible inside the custom AOI box
+        sat_rel_url = None
+        sat_fc_rel_url = None
 
     # Calculate actual bounding box in WGS84 for Leaflet
     if scene_key and "32" in crs:

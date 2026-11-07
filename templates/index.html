@@ -836,6 +836,23 @@
       document.getElementById('badgeTargetType').innerText = 'CUSTOM PIN';
     });
 
+    // Sync Map when user manually types/pastes Latitude or Longitude
+    function onManualCoordInput() {
+      const lat = parseFloat(document.getElementById('inputLat').value);
+      const lon = parseFloat(document.getElementById('inputLon').value);
+      if (isNaN(lat) || isNaN(lon)) return;
+      marker.setLatLng([lat, lon]);
+      resetPanelsToStandby();
+      updatePatchPolygon(lat, lon);
+      map.flyTo([lat, lon], 13, { duration: 1.0 });
+      document.getElementById('locationTitle').innerText = `Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
+      document.getElementById('badgeTargetType').innerText = 'CUSTOM PIN';
+      document.getElementById('missionTitle').innerText = `CUSTOM PINPOINT LOCKED (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
+      document.getElementById('missionSub').innerText = `Press [ANALYZE FIRE & CARBON >>] to scan this 2.56km Sentinel-2 sector.`;
+    }
+    document.getElementById('inputLat').addEventListener('change', onManualCoordInput);
+    document.getElementById('inputLon').addEventListener('change', onManualCoordInput);
+
     function setTemporalPhase(phase) {
       if (phase === 'pre') {
         document.getElementById('inputDate').value = window.currentPreFireDate || '2019-07-10';
