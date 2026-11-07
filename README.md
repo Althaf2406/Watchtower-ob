@@ -1,8 +1,15 @@
-# Watchtower: Uncertainty-Aware Wildfire Segmentation & Carbon Accounting Pipeline
+<p align="center">
+  <img src="assets/watchtower_banner.svg" alt="Watchtower Banner" width="100%"/>
+</p>
 
-[![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/downloads/)
-[![PyTorch 2.15](https://img.shields.io/badge/PyTorch-2.15-ee4c2c.svg)](https://pytorch.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  <a href="#key-capabilities"><img src="https://img.shields.io/badge/Status-Production%20Ready-00E5FF.svg" alt="Status"/></a>
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.13-blue.svg" alt="Python 3.13"/></a>
+  <a href="https://pytorch.org/"><img src="https://img.shields.io/badge/PyTorch-2.15-ee4c2c.svg" alt="PyTorch 2.15"/></a>
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/></a>
+</p>
+
+# Watchtower: Uncertainty-Aware Wildfire Segmentation & Carbon Accounting Pipeline
 
 An end-to-end geospatial deep learning system for high-resolution semantic segmentation of active flame fronts and burn scars, isolated Bayesian uncertainty quantification under heavy smoke obscuration, and uncertainty-propagated greenhouse gas ($\text{CO}_2\text{e}$) accounting via Global Forest Watch (GFW).
 
