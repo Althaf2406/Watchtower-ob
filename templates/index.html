@@ -170,9 +170,22 @@
         </div>
       </div>
 
-      <div class="text-xs">
-        <label class="text-[10px] text-slate-400 block mb-0.5">Observation Date</label>
-        <input id="inputDate" type="date" value="2019-09-21" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-accentCyan">
+      <div class="text-xs space-y-1">
+        <div class="flex items-center justify-between">
+          <label class="text-[10px] text-slate-400 block">Observation Date</label>
+          <span id="temporalBadge" class="text-[8px] font-mono px-1.5 py-0.2 rounded bg-amber-950 text-amber-400 border border-amber-800">Observation Mode</span>
+        </div>
+        <input id="inputDate" type="date" value="2019-09-21" onchange="runAnalysis()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-accentCyan cursor-pointer">
+        
+        <!-- Quick Temporal Phase Toggles -->
+        <div class="grid grid-cols-2 gap-1.5 pt-0.5">
+          <button type="button" onclick="setTemporalPhase('pre')" class="py-1 px-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[10px] transition flex items-center justify-center gap-1 active:scale-95 cursor-pointer">
+            <span>⏪ Pre-Fire</span>
+          </button>
+          <button type="button" onclick="setTemporalPhase('peak')" class="py-1 px-1.5 rounded bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 text-[10px] transition flex items-center justify-center gap-1 font-semibold active:scale-95 cursor-pointer">
+            <span>🔥 Peak Fire</span>
+          </button>
+        </div>
       </div>
 
       <div class="text-xs">
@@ -424,6 +437,15 @@
       runAnalysis();
     }
 
+    function setTemporalPhase(phase) {
+      if (phase === 'pre') {
+        document.getElementById('inputDate').value = window.currentPreFireDate || '2023-06-15';
+      } else {
+        document.getElementById('inputDate').value = window.currentPeakFireDate || '2023-09-30';
+      }
+      runAnalysis();
+    }
+
     // 2. Initialize Captum Attribution Chart (Chart.js)
     const ctx = document.getElementById('chartAttribution').getContext('2d');
     const attrChart = new Chart(ctx, {
@@ -478,6 +500,25 @@
           body: JSON.stringify({ lat, lon, date, model, mc_passes: 6 })
         });
         const data = await response.json();
+
+        // Store temporal dates
+        window.currentPreFireDate = data.pre_fire_date || "2023-06-15";
+        window.currentPeakFireDate = data.peak_fire_date || "2023-09-30";
+
+        // Update Temporal Badge
+        const tBadge = document.getElementById('temporalBadge');
+        if (tBadge) {
+          if (data.temporal_status === 'active_fire') {
+            tBadge.className = "text-[8px] font-mono px-1.5 py-0.2 rounded bg-red-950 text-red-400 border border-red-800";
+            tBadge.innerText = "🔥 Active Fire Window";
+          } else if (data.temporal_status === 'pre_fire') {
+            tBadge.className = "text-[8px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
+            tBadge.innerText = "🟢 Pre-Fire Baseline";
+          } else {
+            tBadge.className = "text-[8px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-blue-400 border border-blue-800";
+            tBadge.innerText = "🌱 Post-Fire Recovery";
+          }
+        }
 
         // Update Location Title
         if (data.location_title) {
@@ -593,14 +634,14 @@
           map.flyToBounds(geojsonLayer.getBounds(), { padding: [60, 60], duration: 1.2 });
 
           // Show Wildfire Alert Toast
-          document.getElementById('toastMain').innerText = `🔥 Wildfire Mapped: ${data.carbon.nominal_mean.burned_area_ha.toFixed(1)} ha`;
-          document.getElementById('toastSub').innerText = `CO2e Emission: ${data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString()} tonnes | Model: ${data.model_architecture}`;
+          document.getElementById('toastMain').innerText = `🔥 Wildfire Mapped: ${data.carbon.nominal_mean.burned_area_ha.toFixed(1)} ha (${data.observation_date})`;
+          document.getElementById('toastSub').innerText = data.temporal_message || `CO2e Emission: ${data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString()} tonnes | Model: ${data.model_architecture}`;
           mapToast.className = "absolute top-4 right-16 z-[400] bg-panel/90 backdrop-blur border border-amber-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all";
           mapToast.classList.remove('hidden');
         } else {
-          // Zero fire detected (Safe / unburned coordinate)
-          document.getElementById('toastMain').innerText = `🟢 No Wildfire Detected`;
-          document.getElementById('toastSub').innerText = `Surface reflectance normal. 0.0 ha burned within this AOI | Model: ${data.model_architecture}`;
+          // Zero fire detected (Safe / unburned coordinate / pre-fire baseline)
+          document.getElementById('toastMain').innerText = data.temporal_message || `🟢 No Wildfire Detected (${data.observation_date})`;
+          document.getElementById('toastSub').innerText = `Vegetasi normal utuh (0.0 ha terbakar). Nihil anomali termal SWIR | Model: ${data.model_architecture}`;
           mapToast.className = "absolute top-4 right-16 z-[400] bg-panel/90 backdrop-blur border border-emerald-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all";
           mapToast.classList.remove('hidden');
         }
