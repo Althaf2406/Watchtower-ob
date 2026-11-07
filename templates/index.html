@@ -6,6 +6,11 @@
   <title>WATCHTOWER | Wildfire AI & Carbon Intelligence</title>
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   
+  <!-- Google Fonts: Bebas Neue (Persona Display) + Space Grotesk + JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=JetBrains+Mono:ital,wght@0,400;0,700;0,800;1,700&family=Space+Grotesk:wght@400;600;700;900&display=swap" rel="stylesheet">
+
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
@@ -14,13 +19,21 @@
       theme: {
         extend: {
           colors: {
-            obsidian: '#050B18',
-            panel: '#0B1528',
-            card: '#101F3C',
-            accentCyan: '#00E5FF',
-            accentFlame: '#FF5722',
-            accentEmerald: '#00E676',
-            accentGold: '#FFC107'
+            void: '#040711',
+            obsidian: '#080E1C',
+            carbon: '#10192E',
+            edgeDark: '#1E2D4A',
+            flameCrimson: '#FF1744',
+            flameOrange: '#FF5722',
+            flameAmber: '#FF9100',
+            laserCyan: '#00E5FF',
+            bioEmerald: '#00E676',
+            starkWhite: '#FFFFFF'
+          },
+          fontFamily: {
+            display: ['"Bebas Neue"', 'sans-serif'],
+            body: ['"Space Grotesk"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
           }
         }
       }
@@ -38,316 +51,473 @@
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-    .leaflet-container { background: #050B18; }
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0B1528; }
-    ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 3px; }
+    body {
+      background-color: #040711;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+    .leaflet-container { background: #040711; }
+    
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #080E1C; }
+    ::-webkit-scrollbar-thumb { background: #FF1744; }
     ::-webkit-scrollbar-thumb:hover { background: #00E5FF; }
 
-    @keyframes pulseGlow {
+    /* Persona/Metaphor Stylized Geometry */
+    .skew-persona {
+      transform: skewX(-7deg);
+    }
+    .unskew-persona {
+      transform: skewX(7deg);
+    }
+    .clip-chamfer {
+      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    }
+    .clip-banner {
+      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+    }
+    .clip-ribbon-left {
+      clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+    }
+    .clip-notch {
+      clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
+    }
+
+    /* Persona Striped Pattern Accents */
+    .hazard-stripes-red {
+      background: repeating-linear-gradient(-45deg, #FF1744 0, #FF1744 4px, #080E1C 4px, #080E1C 10px);
+    }
+    .hazard-stripes-cyan {
+      background: repeating-linear-gradient(-45deg, #00E5FF 0, #00E5FF 4px, #080E1C 4px, #080E1C 10px);
+    }
+
+    /* Glowing Animations */
+    @keyframes pulseFlame {
       0% { filter: drop-shadow(0 0 3px #FF1744); stroke-width: 3; }
-      50% { filter: drop-shadow(0 0 12px #FF5252); stroke-width: 4.5; }
+      50% { filter: drop-shadow(0 0 14px #FF5722); stroke-width: 4.5; }
       100% { filter: drop-shadow(0 0 3px #FF1744); stroke-width: 3; }
     }
     .pulse-fire {
-      animation: pulseGlow 1.8s infinite ease-in-out;
+      animation: pulseFlame 1.8s infinite ease-in-out;
     }
+
+    /* Stylized Leaflet Popup */
     .custom-fire-popup .leaflet-popup-content-wrapper {
-      background: #0B1528;
-      color: #E2E8F0;
-      border: 1px solid #1E293B;
-      border-radius: 8px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7);
+      background: #080E1C;
+      color: #FFFFFF;
+      border: 2px solid #FF1744;
+      border-radius: 0;
+      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
+      box-shadow: 6px 6px 0px rgba(255, 23, 68, 0.4);
     }
     .custom-fire-popup .leaflet-popup-tip {
-      background: #0B1528;
+      background: #FF1744;
     }
     .leaflet-control-layers {
-      background: rgba(11, 21, 40, 0.9) !important;
-      border: 1px solid #1E293B !important;
-      color: #E2E8F0 !important;
-      border-radius: 8px !important;
-      backdrop-filter: blur(8px);
+      background: #080E1C !important;
+      border: 2px solid #1E2D4A !important;
+      color: #FFFFFF !important;
+      border-radius: 0 !important;
+      font-family: 'Space Grotesk', sans-serif !important;
       font-size: 11px !important;
+      box-shadow: 4px 4px 0px #00E5FF !important;
     }
     .leaflet-control-layers-separator {
-      border-top-color: #1E293B !important;
+      border-top-color: #1E2D4A !important;
+    }
+
+    /* Atlus Command Button Hover Slashes */
+    .btn-persona {
+      position: relative;
+      transition: all 0.15s ease-in-out;
+    }
+    .btn-persona:hover {
+      transform: skewX(-7deg) translateX(3px);
+      box-shadow: 4px 4px 0px #00E5FF;
+    }
+    .btn-persona:active {
+      transform: skewX(-7deg) translateY(2px);
+      box-shadow: 0px 0px 0px #00E5FF;
+    }
+    .btn-action-flame {
+      background: linear-gradient(135deg, #FF1744 0%, #FF5722 60%, #FF9100 100%);
+      box-shadow: 5px 5px 0px #040711, 7px 7px 0px #FF1744;
+    }
+    .btn-action-flame:hover {
+      box-shadow: 7px 7px 0px #040711, 9px 9px 0px #00E5FF;
+      filter: brightness(1.15);
     }
   </style>
 </head>
-<body class="bg-obsidian text-slate-100 flex flex-col h-screen overflow-hidden font-sans">
+<body class="bg-void text-slate-100 flex flex-col h-screen max-h-screen overflow-hidden select-none">
 
-  <!-- Top Navbar -->
-  <header class="h-14 border-b border-slate-800 bg-panel/80 backdrop-blur px-4 flex items-center justify-between z-20">
+  <!-- ================= TOP PERSONA COMMAND HEADER ================= -->
+  <header class="h-16 shrink-0 border-b-2 border-edgeDark bg-obsidian/95 px-4 flex items-center justify-between z-30 relative shadow-2xl">
+    
+    <!-- Left Logo & Tactical Brand -->
     <div class="flex items-center space-x-3">
-      <img src="/assets/favicon.png" alt="Logo" class="w-8 h-8 rounded-lg shadow-lg border border-accentCyan/30">
+      <div class="relative skew-persona bg-gradient-to-br from-flameCrimson to-flameOrange p-1.5 shadow-[0_0_15px_rgba(255,23,68,0.6)] border border-starkWhite">
+        <img src="/assets/favicon.png" alt="Logo" class="w-8 h-8 object-contain unskew-persona">
+      </div>
       <div>
         <div class="flex items-center space-x-2">
-          <span class="font-black text-lg tracking-wider text-white">WATCHTOWER</span>
-          <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-accentCyan border border-cyan-800 font-semibold tracking-wide">AI GEOSPATIAL UQ</span>
+          <span class="font-display text-3xl tracking-wider text-starkWhite leading-none drop-shadow-[2px_2px_0px_#FF1744]">
+            WATCHTOWER
+          </span>
+          <span class="skew-persona bg-starkWhite text-void px-2 py-0.5 font-display text-xs tracking-wider font-black border-l-4 border-laserCyan">
+            AI TACTICAL SATELLITE
+          </span>
+          <span class="hidden md:inline-block skew-persona bg-flameCrimson text-starkWhite px-1.5 py-0.2 font-mono text-[9px] font-bold">
+            10M S2_GRID
+          </span>
         </div>
-        <p class="text-[10px] text-slate-400 hidden md:block">Wildfire Attention & Transformer Calibration with Hybrid Tversky Optimization for Woodland Emission Reporting</p>
+        <p class="text-[10px] font-mono text-slate-400 hidden xl:block tracking-tight">
+          <span class="text-laserCyan font-bold">// UQ-CALIBRATED</span> ATTENTION U-NET &bull; RESNET-50 &bull; GLOBAL FOREST WATCH CARBON AUDIT
+        </p>
       </div>
     </div>
 
-    <!-- Top presets -->
+    <!-- Center/Right Preset Hotspot Ribbons (Persona Battle Menu Style) -->
     <div class="flex items-center space-x-2 text-xs">
-      <span class="text-slate-400 font-medium hidden lg:inline">Historical Hotspots:</span>
-      <button onclick="loadPreset(-7.292, 112.795, '2023-09-30', 'Keputih Sukolilo, Surabaya Timur')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-600/60 transition font-semibold">
-        🌾 Surabaya (2023)
+      <div class="hidden lg:flex items-center gap-1 font-display text-sm tracking-wider text-slate-400 mr-1 skew-persona">
+        <span class="w-2 h-2 bg-laserCyan inline-block animate-ping"></span>
+        <span>TARGET PRESETS:</span>
+      </div>
+
+      <!-- Surabaya Preset -->
+      <button onclick="loadPreset(-7.292, 112.795, '2023-09-30', 'Keputih Sukolilo, Surabaya Timur')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-flameOrange/70 px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_rgba(255,87,34,0.4)] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
+        <div class="unskew-persona flex items-center space-x-1.5">
+          <span class="font-display text-base text-flameAmber group-hover:text-starkWhite">01</span>
+          <span class="font-display text-sm tracking-wider">🌾 SURABAYA</span>
+        </div>
       </button>
-      <button onclick="loadPreset(-1.843, 113.973, '2019-09-21', 'Pulang Pisau, Central Kalimantan')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">
-        🔥 Kalimantan (2019)
+
+      <!-- Kalimantan Preset -->
+      <button onclick="loadPreset(-1.843, 113.973, '2019-09-21', 'Pulang Pisau, Central Kalimantan')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
+        <div class="unskew-persona flex items-center space-x-1.5">
+          <span class="font-display text-base text-laserCyan group-hover:text-starkWhite">02</span>
+          <span class="font-display text-sm tracking-wider">🔥 KALIMANTAN</span>
+        </div>
       </button>
-      <button onclick="loadPreset(-33.868, 150.200, '2020-01-04', 'Blue Mountains, NSW Australia')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition hidden sm:inline">
-        🇦🇺 NSW Australia (2020)
+
+      <!-- Maui Preset -->
+      <button onclick="loadPreset(20.889, -156.683, '2023-08-08', 'Lahaina, Maui Hawaii')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden sm:inline-block">
+        <div class="unskew-persona flex items-center space-x-1.5">
+          <span class="font-display text-base text-slate-400 group-hover:text-starkWhite">03</span>
+          <span class="font-display text-sm tracking-wider">🌴 MAUI</span>
+        </div>
       </button>
-      <button onclick="loadPreset(20.889, -156.683, '2023-08-08', 'Lahaina, Maui Hawaii')" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition hidden sm:inline">
-        🌴 Maui, Hawaii (2023)
+
+      <!-- Australia Preset -->
+      <button onclick="loadPreset(-33.868, 150.200, '2020-01-04', 'Blue Mountains, NSW Australia')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden md:inline-block">
+        <div class="unskew-persona flex items-center space-x-1.5">
+          <span class="font-display text-base text-slate-400 group-hover:text-starkWhite">04</span>
+          <span class="font-display text-sm tracking-wider">🇦🇺 NSW</span>
+        </div>
       </button>
     </div>
   </header>
 
-  <!-- Main Content Layout (Map + Sidebar) -->
-  <div class="flex-1 flex overflow-hidden relative">
+  <!-- ================= MAIN VIEWPORT (MAP + PERSONA ANALYTICS) ================= -->
+  <div class="flex-1 min-h-0 flex overflow-hidden relative">
 
-    <!-- Interactive Map Viewport -->
+    <!-- Interactive Leaflet Map Viewport -->
     <div id="map" class="flex-1 h-full z-10 relative">
-      <!-- Floating Top Toast for Analysis Results -->
-      <div id="mapToast" class="absolute top-4 right-16 z-[400] hidden bg-panel/90 backdrop-blur border border-emerald-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all">
-        <div class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0"></div>
-        <div class="text-xs">
-          <span id="toastMain" class="font-bold text-white block">Wildfire Analysis Complete</span>
-          <span id="toastSub" class="text-slate-300 block text-[10px]">Active flame and burn scar mapped to Sentinel-2 grid.</span>
-        </div>
-        <button onclick="document.getElementById('mapToast').classList.add('hidden')" class="text-slate-400 hover:text-white text-base ml-2 cursor-pointer">&times;</button>
+
+      <!-- Stylized HUD Crosshair Corners -->
+      <div class="absolute top-3 right-3 z-[350] pointer-events-none font-mono text-[9px] text-laserCyan tracking-widest bg-obsidian/80 px-2 py-1 border border-laserCyan/40 skew-persona">
+        SYS_STATUS: ENGAGED // EPSG:4326
       </div>
 
-      <!-- Floating Map Legend (Bottom-Left) -->
-      <div class="absolute bottom-6 left-6 z-[400] bg-panel/90 backdrop-blur border border-slate-800 rounded-xl p-3 shadow-2xl space-y-2 text-[10px] w-56 pointer-events-auto">
-        <div class="font-bold text-white uppercase tracking-wider text-[9px] border-b border-slate-800 pb-1.5 flex items-center justify-between">
-          <span class="flex items-center gap-1.5"><i data-lucide="layers" class="w-3.5 h-3.5 text-accentCyan"></i> Map Legend</span>
-          <span class="text-[9px] font-mono text-slate-500">10m Res</span>
+      <!-- Floating Alert Notification (Persona Style Cutout Banner) -->
+      <div id="mapToast" class="absolute top-4 right-16 z-[400] hidden skew-persona bg-obsidian border-2 border-flameCrimson px-5 py-3 shadow-[6px_6px_0px_#FF1744] flex items-center space-x-4 transition-all">
+        <div class="w-3.5 h-3.5 bg-flameCrimson animate-ping shrink-0 border border-starkWhite"></div>
+        <div class="unskew-persona">
+          <span id="toastMain" class="font-display text-lg tracking-wider text-starkWhite block leading-none">WILDFIRE MAPPED</span>
+          <span id="toastSub" class="text-slate-300 font-mono text-[10px] block mt-0.5">Telemetry calibrated to Sentinel-2 grid.</span>
         </div>
-        <div class="space-y-1.5 font-medium">
+        <button onclick="document.getElementById('mapToast').classList.add('hidden')" class="unskew-persona text-slate-400 hover:text-flameCrimson text-xl font-bold ml-3 cursor-pointer">&times;</button>
+      </div>
+
+      <!-- Stylized Floating Map Legend (Persona Slash Box) -->
+      <div class="absolute bottom-6 left-6 z-[400] skew-persona bg-obsidian/95 border-2 border-edgeDark p-3.5 shadow-[5px_5px_0px_#000] space-y-2.5 text-[11px] w-64 pointer-events-auto">
+        <div class="unskew-persona font-display text-base tracking-wider text-starkWhite border-b-2 border-edgeDark pb-1 flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><i data-lucide="layers" class="w-4 h-4 text-laserCyan"></i> MAP TELEMETRY</span>
+          <span class="text-[9px] font-mono text-laserCyan bg-void px-1.5 py-0.5 border border-laserCyan/40">10M RESOLUTION</span>
+        </div>
+        <div class="unskew-persona space-y-2 font-mono text-[10px]">
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 rounded bg-red-600 border border-red-400 shadow-[0_0_8px_#f87171] shrink-0"></span>
-            <span class="text-slate-200">Active Flame Front (Class 2)</span>
+            <span class="w-3.5 h-3.5 bg-flameCrimson border border-starkWhite shadow-[0_0_8px_#FF1744] shrink-0"></span>
+            <span class="text-starkWhite font-bold">Active Flame Front (Class 2)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 rounded bg-amber-600 border border-amber-400 shrink-0"></span>
+            <span class="w-3.5 h-3.5 bg-flameOrange border border-starkWhite shrink-0"></span>
             <span class="text-slate-200">Burn Scar Footprint (Class 1)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 rounded bg-slate-500/50 border border-slate-400 border-dashed shrink-0"></span>
-            <span class="text-slate-300">Smoke-FCER Plume Envelope</span>
+            <span class="w-3.5 h-3.5 bg-slate-600/70 border border-starkWhite border-dashed shrink-0"></span>
+            <span class="text-slate-300">Smoke-FCER Aerosol Plume</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 rounded bg-orange-500/20 border border-orange-500 border-dashed shrink-0"></span>
-            <span class="text-slate-400">2.56 km Sentinel-2 AOI Box</span>
+            <span class="w-3.5 h-3.5 bg-laserCyan/20 border border-laserCyan border-dashed shrink-0"></span>
+            <span class="text-laserCyan">2.56 km Sentinel-2 AOI Patch</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Map Floating Control Card -->
-    <div class="absolute top-4 left-4 z-[400] w-80 bg-panel/90 backdrop-blur border border-slate-800 rounded-xl p-4 shadow-2xl space-y-3">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-800">
-        <h2 class="text-xs font-bold uppercase tracking-wider text-accentCyan flex items-center gap-1.5">
-          <i data-lucide="crosshair" class="w-4 h-4"></i> Coordinate Target
-        </h2>
-        <span class="text-[10px] text-slate-400 font-mono">10m S2 Grid</span>
+    <!-- ================= FLOATING COMMAND CARD (TACTICAL TARGET ACQUISITION) ================= -->
+    <div class="absolute top-4 left-4 z-[400] w-84 bg-obsidian/95 border-2 border-edgeDark p-4 shadow-[8px_8px_0px_#040711] space-y-3.5 clip-notch">
+      
+      <!-- Card Header Banner -->
+      <div class="flex items-center justify-between pb-2 border-b-2 border-edgeDark">
+        <div class="skew-persona bg-flameCrimson text-starkWhite px-2.5 py-0.5 font-display text-sm tracking-wider font-black shadow-[2px_2px_0px_#000]">
+          /// TARGET ACQUISITION
+        </div>
+        <span class="font-mono text-[10px] text-laserCyan tracking-tight">S2-L2A COG</span>
       </div>
 
-      <div class="grid grid-cols-2 gap-2 text-xs">
+      <!-- Lat & Lon Inputs -->
+      <div class="grid grid-cols-2 gap-2 text-xs font-mono">
         <div>
-          <label class="text-[10px] text-slate-400 block mb-0.5">Latitude</label>
-          <input id="inputLat" type="number" step="0.0001" value="-1.8430" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white focus:outline-none focus:border-accentCyan">
+          <label class="text-[9px] text-slate-400 uppercase tracking-wider block mb-0.5 font-bold">LATITUDE</label>
+          <input id="inputLat" type="number" step="0.0001" value="-1.8430" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2.5 py-1.5 text-starkWhite font-bold focus:outline-none transition-colors">
         </div>
         <div>
-          <label class="text-[10px] text-slate-400 block mb-0.5">Longitude</label>
-          <input id="inputLon" type="number" step="0.0001" value="113.9729" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 font-mono text-white focus:outline-none focus:border-accentCyan">
+          <label class="text-[9px] text-slate-400 uppercase tracking-wider block mb-0.5 font-bold">LONGITUDE</label>
+          <input id="inputLon" type="number" step="0.0001" value="113.9729" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2.5 py-1.5 text-starkWhite font-bold focus:outline-none transition-colors">
         </div>
       </div>
 
-      <div class="text-xs space-y-1">
+      <!-- Observation Date & Persona Temporal Phase Toggles -->
+      <div class="space-y-1.5">
         <div class="flex items-center justify-between">
-          <label class="text-[10px] text-slate-400 block">Observation Date</label>
-          <span id="temporalBadge" class="text-[8px] font-mono px-1.5 py-0.2 rounded bg-amber-950 text-amber-400 border border-amber-800">Observation Mode</span>
+          <label class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold font-mono">OBSERVATION DATE</label>
+          <span id="temporalBadge" class="skew-persona bg-flameOrange text-void font-display text-xs px-2 py-0.2 font-black">
+            OBSERVATION MODE
+          </span>
         </div>
-        <input id="inputDate" type="date" value="2019-09-21" onchange="runAnalysis()" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-accentCyan cursor-pointer">
+        <input id="inputDate" type="date" value="2019-09-21" onchange="runAnalysis()" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2.5 py-1 text-starkWhite font-mono text-xs focus:outline-none cursor-pointer">
         
-        <!-- Quick Temporal Phase Toggles -->
-        <div class="grid grid-cols-2 gap-1.5 pt-0.5">
-          <button type="button" onclick="setTemporalPhase('pre')" class="py-1 px-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-[10px] transition flex items-center justify-center gap-1 active:scale-95 cursor-pointer">
-            <span>⏪ Pre-Fire</span>
+        <!-- Persona Dual Phase Trigger Buttons -->
+        <div class="grid grid-cols-2 gap-2 pt-1 font-display">
+          <button type="button" onclick="setTemporalPhase('pre')" class="btn-persona skew-persona bg-carbon hover:bg-bioEmerald hover:text-void text-starkWhite border-2 border-bioEmerald/60 py-1.5 px-2 text-xs tracking-wider transition-all duration-150 cursor-pointer text-center shadow-[3px_3px_0px_#000]">
+            <div class="unskew-persona flex items-center justify-center gap-1">
+              <span>⏪ PRE-FIRE (BASE)</span>
+            </div>
           </button>
-          <button type="button" onclick="setTemporalPhase('peak')" class="py-1 px-1.5 rounded bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-800 text-[10px] transition flex items-center justify-center gap-1 font-semibold active:scale-95 cursor-pointer">
-            <span>🔥 Peak Fire</span>
+          <button type="button" onclick="setTemporalPhase('peak')" class="btn-persona skew-persona bg-flameCrimson text-starkWhite border-2 border-starkWhite py-1.5 px-2 text-xs tracking-wider transition-all duration-150 cursor-pointer text-center shadow-[3px_3px_0px_#000]">
+            <div class="unskew-persona flex items-center justify-center gap-1 font-black">
+              <span>🔥 PEAK FIRE (CRISIS)</span>
+            </div>
           </button>
         </div>
       </div>
 
-      <div class="text-xs">
-        <label class="text-[10px] text-slate-400 block mb-0.5">AI Architecture</label>
-        <select id="selectModel" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white focus:outline-none focus:border-accentCyan">
-          <option value="attention_unet_r50">Attention U-Net ResNet-50 (~26.2M)</option>
-          <option value="compact_vit_s16">Compact ViT-S/16 Seg (~24.3M)</option>
+      <!-- AI Architecture Selection -->
+      <div class="space-y-1">
+        <label class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold font-mono">NEURAL BACKBONE</label>
+        <select id="selectModel" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2 py-1.5 text-xs text-starkWhite font-mono focus:outline-none">
+          <option value="attention_unet_r50">SSL4EO ATTENTION U-NET R-50 (~26.2M)</option>
+          <option value="compact_vit_s16">SSL4EO COMPACT ViT-S/16 SEG (~24.3M)</option>
         </select>
       </div>
 
-      <!-- Real Satellite Imagery Layer Control -->
-      <div class="text-xs pt-2 border-t border-slate-800 space-y-1.5">
-        <div class="flex items-center justify-between text-[10px]">
-          <span class="text-slate-400 font-semibold flex items-center gap-1">
-            <i data-lucide="image" class="w-3 h-3 text-accentCyan"></i> Satellite Tile (AOI)
+      <!-- Satellite Band Mode Toggle (Natural RGB vs SWIR) -->
+      <div class="pt-2 border-t-2 border-edgeDark space-y-1.5">
+        <div class="flex items-center justify-between text-[10px] font-mono">
+          <span class="text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1">
+            <i data-lucide="satellite" class="w-3.5 h-3.5 text-laserCyan"></i> S2 RASTER
           </span>
-          <span id="satImageryInfo" class="text-[9px] font-mono text-emerald-400">Sentinel-2 10m</span>
+          <span id="satImageryInfo" class="skew-persona bg-void px-1.5 py-0.5 text-bioEmerald border border-bioEmerald/40 font-bold text-[9px]">
+            SENTINEL-2 10M
+          </span>
         </div>
-        <div class="grid grid-cols-2 gap-1.5">
-          <button id="btnSatNatural" type="button" onclick="setSatelliteMode('natural')" class="py-1 px-1.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700 text-[10px] font-semibold transition text-center cursor-pointer">
-            🌿 Natural RGB
+        <div class="grid grid-cols-2 gap-2 font-display">
+          <button id="btnSatNatural" type="button" onclick="setSatelliteMode('natural')" class="skew-persona bg-bioEmerald text-void border border-starkWhite py-1 px-1 text-xs tracking-wider font-black text-center cursor-pointer shadow-[2px_2px_0px_#000]">
+            <span class="unskew-persona">🌿 NATURAL RGB</span>
           </button>
-          <button id="btnSatFalse" type="button" onclick="setSatelliteMode('falsecolor')" class="py-1 px-1.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] transition text-center cursor-pointer">
-            🛰️ SWIR Fire Glow
+          <button id="btnSatFalse" type="button" onclick="setSatelliteMode('falsecolor')" class="skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-flameAmber py-1 px-1 text-xs tracking-wider text-center cursor-pointer shadow-[2px_2px_0px_#000]">
+            <span class="unskew-persona">🛰️ SWIR FIRE GLOW</span>
           </button>
         </div>
       </div>
 
-      <button id="btnRun" onclick="runAnalysis()" class="w-full py-2.5 rounded-lg bg-gradient-to-r from-accentFlame to-amber-500 hover:from-red-600 hover:to-orange-500 font-bold text-xs uppercase tracking-wider text-white shadow-lg shadow-orange-950/40 flex items-center justify-center gap-2 transition active:scale-95">
-        <i data-lucide="satellite" class="w-4 h-4"></i> Analyze Fire &amp; Carbon
+      <!-- MASTER ACTION BUTTON (PERSONA BLAZING SLANTED BANNER) -->
+      <button id="btnRun" onclick="runAnalysis()" class="w-full py-3 skew-persona btn-action-flame text-starkWhite font-display text-xl tracking-widest uppercase transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer border-2 border-starkWhite mt-2">
+        <div class="unskew-persona flex items-center gap-2 font-black">
+          <i data-lucide="flame" class="w-5 h-5 animate-bounce"></i>
+          <span>ANALYZE FIRE &amp; CARBON &gt;&gt;</span>
+        </div>
       </button>
 
-      <p class="text-[10px] text-slate-400 text-center italic">Click anywhere on Earth map to pin coordinates</p>
+      <p class="text-[9px] font-mono text-slate-500 text-center uppercase tracking-wider">
+        Click or drag pin on globe to acquire coordinates
+      </p>
     </div>
 
-    <!-- Right Side Analytics Panel -->
-    <div id="analyticsPanel" class="w-96 bg-panel/95 backdrop-blur border-l border-slate-800 p-4 flex flex-col overflow-y-auto space-y-4 z-20">
+    <!-- ================= RIGHT PERSONA ANALYTICS PANEL ================= -->
+    <div id="analyticsPanel" class="w-96 bg-obsidian/95 border-l-2 border-edgeDark p-4 flex flex-col overflow-y-auto space-y-4 z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.8)]">
       
-      <!-- Status Badge -->
-      <div id="statusContainer" class="p-3 rounded-lg bg-card border border-slate-800 flex items-center justify-between">
+      <!-- System Telemetry Status Bar -->
+      <div id="statusContainer" class="p-2.5 bg-carbon border-2 border-edgeDark flex items-center justify-between clip-ribbon-left">
         <div class="flex items-center space-x-2">
-          <div id="statusIndicator" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></div>
-          <span id="statusText" class="text-xs font-semibold text-slate-200">System Ready</span>
+          <div id="statusIndicator" class="w-3 h-3 bg-bioEmerald animate-pulse border border-starkWhite"></div>
+          <span id="statusText" class="font-display text-sm tracking-wider text-starkWhite uppercase">SYSTEM ONLINE</span>
         </div>
-        <span id="execTimer" class="text-[10px] font-mono text-slate-400">Idle</span>
+        <span id="execTimer" class="font-mono text-xs font-bold text-laserCyan bg-void px-2 py-0.5 border border-edgeDark">0.0s</span>
       </div>
 
-      <!-- Selected AOI Target Card -->
-      <div class="p-3 rounded-lg bg-card border border-slate-800 space-y-1">
+      <!-- Target Location Card (Persona Cutout) -->
+      <div class="p-3 bg-carbon border-2 border-edgeDark space-y-1 relative">
         <div class="flex items-center justify-between">
-          <span class="text-[9px] uppercase tracking-wider text-slate-400 font-bold">Target Location (AOI)</span>
-          <span id="badgeTargetType" class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-950 text-accentCyan border border-cyan-800 font-mono">Custom Target</span>
+          <span class="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold">// AOI TARGET</span>
+          <span id="badgeTargetType" class="skew-persona bg-laserCyan text-void font-display text-xs px-2 py-0.2 font-black">
+            HISTORICAL PRESET
+          </span>
         </div>
-        <div id="locationTitle" class="text-xs font-bold text-white flex items-center gap-1.5 truncate">
-          <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accentFlame shrink-0"></i>
-          <span class="truncate">Pulang Pisau Peatland, Central Kalimantan</span>
+        <div id="locationTitle" class="font-display text-lg tracking-wider text-starkWhite flex items-center gap-1.5 truncate pt-0.5">
+          <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
+          <span class="truncate">Pulang Pisau, Central Kalimantan</span>
         </div>
-        <div id="locationCoords" class="text-[10px] text-slate-400 font-mono">-1.8430°, 113.9729° | 2019-09-21</div>
+        <div id="locationCoords" class="font-mono text-[10px] text-slate-400">-1.8430°, 113.9729° | 2019-09-21</div>
       </div>
 
-      <!-- Carbon Accounting Card -->
-      <div class="p-4 rounded-xl bg-card border border-slate-800 space-y-3">
-        <div class="flex items-center justify-between">
-          <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-            <i data-lucide="trees" class="w-4 h-4 text-accentEmerald"></i> GFW Carbon Loss
-          </h3>
-          <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">IPCC Verified</span>
+      <!-- ================= GFW CARBON LOSS CARD ================= -->
+      <div class="p-4 bg-carbon border-2 border-edgeDark space-y-3 relative shadow-[5px_5px_0px_#040711]">
+        
+        <!-- Header Banner -->
+        <div class="flex items-center justify-between pb-1 border-b-2 border-edgeDark">
+          <div class="skew-persona bg-flameOrange text-void font-display text-sm tracking-wider font-black px-2.5 py-0.5 shadow-[2px_2px_0px_#000]">
+            /// 01 GFW CARBON LOSS AUDIT
+          </div>
+          <span class="font-mono text-[9px] text-bioEmerald bg-void px-1.5 py-0.5 border border-bioEmerald/40 font-bold">
+            IPCC TIER-3
+          </span>
         </div>
 
+        <!-- Big Stat Blocks (Persona Giant Condensed Font) -->
         <div class="grid grid-cols-2 gap-2 text-center">
-          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-            <span class="text-[10px] text-slate-400 block">Burned Area</span>
-            <span id="statBurnedHa" class="text-lg font-black text-amber-400 font-mono">244.5</span>
-            <span class="text-[10px] text-slate-400">Hectares</span>
+          <!-- Burned Area -->
+          <div class="p-3 bg-void border-2 border-edgeDark relative">
+            <span class="font-mono text-[9px] text-slate-400 uppercase tracking-wider block font-bold">BURNED AREA</span>
+            <div class="flex items-baseline justify-center gap-1 my-0.5">
+              <span id="statBurnedHa" class="font-display text-4xl text-flameAmber font-black tracking-wider leading-none">244.5</span>
+            </div>
+            <span class="font-mono text-[9px] text-slate-400 uppercase">HECTARES (HA)</span>
           </div>
-          <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800">
-            <span class="text-[10px] text-slate-400 block">CO2 Equivalent</span>
-            <span id="statCO2e" class="text-lg font-black text-rose-500 font-mono">122,065</span>
-            <span class="text-[10px] text-slate-400">Tonnes</span>
+
+          <!-- CO2 Equivalent -->
+          <div class="p-3 bg-void border-2 border-edgeDark relative">
+            <span class="font-mono text-[9px] text-slate-400 uppercase tracking-wider block font-bold">CO2 EQUIVALENT</span>
+            <div class="flex items-baseline justify-center gap-1 my-0.5">
+              <span id="statCO2e" class="font-display text-4xl text-flameCrimson font-black tracking-wider leading-none">122,065</span>
+            </div>
+            <span class="font-mono text-[9px] text-slate-400 uppercase">TONNES (tCO2e)</span>
           </div>
         </div>
 
-        <!-- 3 Epistemic Regimes Table -->
-        <div class="overflow-hidden rounded-lg border border-slate-800 text-[11px]">
-          <table class="w-full text-left font-mono">
-            <thead class="bg-slate-900 text-slate-400 text-[10px]">
+        <!-- 3 Epistemic Regimes Table (Persona High-Contrast Brutalist) -->
+        <div class="border-2 border-edgeDark font-mono text-[10px]">
+          <table class="w-full text-left">
+            <thead class="bg-obsidian text-slate-400 uppercase text-[9px] border-b-2 border-edgeDark">
               <tr>
-                <th class="p-1.5">Regime</th>
-                <th class="p-1.5 text-right">Carbon (tC)</th>
-                <th class="p-1.5 text-right">CO2e (t)</th>
+                <th class="p-1.5 font-bold">CONFIDENCE REGIME</th>
+                <th class="p-1.5 text-right font-bold">CARBON (tC)</th>
+                <th class="p-1.5 text-right font-bold">CO2e (t)</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-slate-800 text-slate-200">
+            <tbody class="divide-y-2 divide-edgeDark bg-void text-starkWhite">
               <tr>
-                <td class="p-1.5 text-emerald-400">Conservative</td>
-                <td id="regimeConsC" class="p-1.5 text-right">33,290.6</td>
-                <td id="regimeConsCO2" class="p-1.5 text-right font-bold">122,065.7</td>
+                <td class="p-1.5 font-bold text-bioEmerald flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 bg-bioEmerald"></span> CONSERVATIVE
+                </td>
+                <td id="regimeConsC" class="p-1.5 text-right font-bold">33,290.6</td>
+                <td id="regimeConsCO2" class="p-1.5 text-right font-bold text-bioEmerald">122,065.7</td>
+              </tr>
+              <tr class="bg-carbon/50">
+                <td class="p-1.5 font-bold text-flameAmber flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 bg-flameAmber"></span> NOMINAL MEAN
+                </td>
+                <td id="regimeMeanC" class="p-1.5 text-right font-bold">33,290.6</td>
+                <td id="regimeMeanCO2" class="p-1.5 text-right font-bold text-flameAmber">122,065.7</td>
               </tr>
               <tr>
-                <td class="p-1.5 text-amber-400">Nominal Mean</td>
-                <td id="regimeMeanC" class="p-1.5 text-right">33,290.6</td>
-                <td id="regimeMeanCO2" class="p-1.5 text-right font-bold">122,065.7</td>
-              </tr>
-              <tr>
-                <td class="p-1.5 text-rose-400">Upper 95% CI</td>
-                <td id="regimeUpperC" class="p-1.5 text-right">33,290.6</td>
-                <td id="regimeUpperCO2" class="p-1.5 text-right font-bold">122,065.7</td>
+                <td class="p-1.5 font-bold text-flameCrimson flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 bg-flameCrimson"></span> UPPER 95% CI
+                </td>
+                <td id="regimeUpperC" class="p-1.5 text-right font-bold">33,290.6</td>
+                <td id="regimeUpperCO2" class="p-1.5 text-right font-bold text-flameCrimson">122,065.7</td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      <!-- Uncertainty & Calibration Card -->
-      <div class="p-4 rounded-xl bg-card border border-slate-800 space-y-3">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-          <i data-lucide="gauge" class="w-4 h-4 text-accentCyan"></i> Uncertainty &amp; Calibration
-        </h3>
-        <div class="grid grid-cols-3 gap-1 text-center font-mono">
-          <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
-            <span class="text-[9px] text-slate-400 block">ECE Error</span>
-            <span id="statECE" class="text-xs font-bold text-accentCyan">0.0124</span>
+      <!-- ================= UNCERTAINTY & CALIBRATION CARD ================= -->
+      <div class="p-4 bg-carbon border-2 border-edgeDark space-y-2.5 relative shadow-[5px_5px_0px_#040711]">
+        <div class="flex items-center justify-between pb-1 border-b-2 border-edgeDark">
+          <div class="skew-persona bg-laserCyan text-void font-display text-sm tracking-wider font-black px-2.5 py-0.5 shadow-[2px_2px_0px_#000]">
+            /// 02 BAYESIAN MC CALIBRATION
           </div>
-          <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
-            <span class="text-[9px] text-slate-400 block">Brier Score</span>
-            <span id="statBrier" class="text-xs font-bold text-slate-200">0.6612</span>
+          <span class="font-mono text-[9px] text-laserCyan tracking-tight">T=6 PASSES</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 font-mono text-center">
+          <div class="p-2 bg-void border border-edgeDark">
+            <span class="text-[8px] text-slate-400 block font-bold">ECE ERROR</span>
+            <span id="statECE" class="font-display text-lg text-laserCyan font-black">0.0124</span>
           </div>
-          <div class="p-1.5 rounded bg-slate-900 border border-slate-800">
-            <span class="text-[9px] text-slate-400 block">AUSE Curve</span>
-            <span id="statAUSE" class="text-xs font-bold text-slate-200">0.7334</span>
+          <div class="p-2 bg-void border border-edgeDark">
+            <span class="text-[8px] text-slate-400 block font-bold">BRIER SCORE</span>
+            <span id="statBrier" class="font-display text-lg text-flameAmber font-black">0.6612</span>
+          </div>
+          <div class="p-2 bg-void border border-edgeDark">
+            <span class="text-[8px] text-slate-400 block font-bold">AUSE CURVE</span>
+            <span id="statAUSE" class="font-display text-lg text-bioEmerald font-black">0.7334</span>
           </div>
         </div>
-        <p class="text-[10px] text-slate-400 leading-tight">
-          Evaluated strictly on the <span class="text-accentCyan font-semibold">Smoke-FCER</span> mask (\( \text{Aerosol} > 1.0 \cup 31\times 31 \) dilation buffer).
+        <p class="font-mono text-[9px] text-slate-400 leading-tight">
+          Evaluated inside the <span class="text-laserCyan font-bold">Smoke-FCER</span> mask (Aerosol &gt; 1.0 &cup; 31&times;31 dilation envelope).
         </p>
       </div>
 
-      <!-- Captum Spectral Attribution Chart -->
-      <div class="p-4 rounded-xl bg-card border border-slate-800 space-y-2">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
-          <i data-lucide="bar-chart-3" class="w-4 h-4 text-accentGold"></i> Captum Spectral Importance
-        </h3>
-        <div class="h-44">
+      <!-- ================= CAPTUM SPECTRAL IMPORTANCE CARD ================= -->
+      <div class="p-4 bg-carbon border-2 border-edgeDark space-y-2 relative shadow-[5px_5px_0px_#040711]">
+        <div class="flex items-center justify-between pb-1 border-b-2 border-edgeDark">
+          <div class="skew-persona bg-flameAmber text-void font-display text-sm tracking-wider font-black px-2.5 py-0.5 shadow-[2px_2px_0px_#000]">
+            /// 03 CAPTUM XAI ATTRIBUTION
+          </div>
+          <span class="font-mono text-[9px] text-slate-400">INTEGRATED GRADIENTS</span>
+        </div>
+        <div class="h-44 bg-void p-2 border border-edgeDark">
           <canvas id="chartAttribution"></canvas>
         </div>
       </div>
 
-      <!-- Diagnostic Figure Thumbnail -->
-      <div class="p-3 rounded-xl bg-card border border-slate-800 space-y-2">
-        <span class="text-[10px] text-slate-400 font-semibold uppercase block">8-Panel Multi-Spectral Diagnostic</span>
-        <img id="imgDiagnostic" src="/outputs/kalimantan_2019_real_wildfire_test.png" alt="Diagnostic Preview" class="w-full rounded border border-slate-700 shadow cursor-pointer hover:opacity-90 transition" onclick="window.open(this.src)">
+      <!-- ================= MULTI-SPECTRAL DIAGNOSTIC VISOR ================= -->
+      <div class="p-3 bg-carbon border-2 border-edgeDark space-y-2 relative shadow-[5px_5px_0px_#040711]">
+        <div class="flex items-center justify-between text-[10px] font-mono">
+          <span class="text-slate-300 font-bold uppercase tracking-wider">// 8-PANEL SATELLITE DIAGNOSTIC</span>
+          <span class="text-flameCrimson font-bold text-[9px]">INTERACTIVE</span>
+        </div>
+        <div class="relative group cursor-pointer border-2 border-edgeDark hover:border-laserCyan transition-colors overflow-hidden" onclick="window.open(document.getElementById('imgDiagnostic').src)">
+          <img id="imgDiagnostic" src="/outputs/kalimantan_2019_real_wildfire_test.png" alt="Diagnostic Preview" class="w-full object-cover">
+          <div class="absolute inset-0 bg-flameCrimson/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity font-display text-lg tracking-wider text-starkWhite">
+            <span>EXPAND DIAGNOSTIC FEED &gt;&gt;</span>
+          </div>
+        </div>
       </div>
 
     </div>
 
   </div>
 
+  <!-- ================= JAVASCRIPT APP LOGIC ================= -->
   <script>
     // Initialize Lucide Icons
     lucide.createIcons();
 
-    // 1. Initialize Leaflet Map with Multiple Basemaps
+    // 1. Initialize Leaflet Map with High-Contrast Sat & Dark Basemaps
     const map = L.map('map', {
       center: [-1.8430, 113.9729], // Central Kalimantan default
       zoom: 12,
@@ -399,11 +569,11 @@
       const btnNat = document.getElementById('btnSatNatural');
       const btnFc = document.getElementById('btnSatFalse');
       if (mode === 'natural') {
-        if (btnNat) btnNat.className = "py-1 px-1.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700 text-[10px] font-semibold transition text-center cursor-pointer";
-        if (btnFc) btnFc.className = "py-1 px-1.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] transition text-center cursor-pointer";
+        if (btnNat) btnNat.className = "skew-persona bg-bioEmerald text-void border border-starkWhite py-1 px-1 text-xs tracking-wider font-black text-center cursor-pointer shadow-[2px_2px_0px_#000]";
+        if (btnFc) btnFc.className = "skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-flameAmber py-1 px-1 text-xs tracking-wider text-center cursor-pointer shadow-[2px_2px_0px_#000]";
       } else {
-        if (btnFc) btnFc.className = "py-1 px-1.5 rounded bg-amber-950/80 text-amber-300 border border-amber-700 text-[10px] font-semibold transition text-center cursor-pointer";
-        if (btnNat) btnNat.className = "py-1 px-1.5 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[10px] transition text-center cursor-pointer";
+        if (btnFc) btnFc.className = "skew-persona bg-flameAmber text-void border border-starkWhite py-1 px-1 text-xs tracking-wider font-black text-center cursor-pointer shadow-[2px_2px_0px_#000]";
+        if (btnNat) btnNat.className = "skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-bioEmerald py-1 px-1 text-xs tracking-wider text-center cursor-pointer shadow-[2px_2px_0px_#000]";
       }
       renderSatelliteOverlay();
     }
@@ -427,16 +597,15 @@
     let patchPolygon = null;
 
     function updatePatchPolygon(lat, lon) {
-      // 256 pixels @ 10m = ~2.56 km box = ~0.023 degrees
-      const delta = 0.0115;
+      const delta = 0.0115; // 256 pixels @ 10m = ~2.56 km box
       const bounds = [[lat - delta, lon - delta], [lat + delta, lon + delta]];
       patchGroup.clearLayers();
       patchPolygon = L.rectangle(bounds, {
-        color: '#FF5722',
+        color: '#00E5FF',
         weight: 2,
-        fillColor: '#FF5722',
+        fillColor: '#00E5FF',
         fillOpacity: 0.12,
-        dashArray: '5, 5'
+        dashArray: '6, 6'
       });
       patchGroup.addLayer(patchPolygon);
       document.getElementById('locationCoords').innerText = `${lat.toFixed(4)}°, ${lon.toFixed(4)}° | ${document.getElementById('inputDate').value}`;
@@ -452,10 +621,10 @@
       marker.setLatLng(e.latlng);
       updatePatchPolygon(lat, lon);
       document.getElementById('locationTitle').innerHTML = `
-        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accentFlame shrink-0"></i>
+        <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
         <span class="truncate">Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)</span>
       `;
-      document.getElementById('badgeTargetType').innerText = "Custom Coordinate";
+      document.getElementById('badgeTargetType').innerText = "CUSTOM COORD";
       lucide.createIcons();
     });
 
@@ -467,10 +636,10 @@
       document.getElementById('inputLon').value = lon;
       updatePatchPolygon(lat, lon);
       document.getElementById('locationTitle').innerHTML = `
-        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accentFlame shrink-0"></i>
+        <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
         <span class="truncate">Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)</span>
       `;
-      document.getElementById('badgeTargetType').innerText = "Custom Coordinate";
+      document.getElementById('badgeTargetType').innerText = "CUSTOM COORD";
       lucide.createIcons();
     });
 
@@ -479,15 +648,14 @@
       document.getElementById('inputLon').value = lon;
       document.getElementById('inputDate').value = date;
       document.getElementById('locationTitle').innerHTML = `
-        <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accentFlame shrink-0"></i>
+        <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
         <span class="truncate">${label}</span>
       `;
-      document.getElementById('badgeTargetType').innerText = "Preset Benchmark";
+      document.getElementById('badgeTargetType').innerText = "PRESET HOTSPOT";
       lucide.createIcons();
       map.setView([lat, lon], 12);
       marker.setLatLng([lat, lon]);
       updatePatchPolygon(lat, lon);
-      // Automatically trigger analysis for seamless preview
       runAnalysis();
     }
 
@@ -500,7 +668,7 @@
       runAnalysis();
     }
 
-    // 2. Initialize Captum Attribution Chart (Chart.js)
+    // 2. Initialize Captum Attribution Chart (Chart.js Persona High-Contrast Styling)
     const ctx = document.getElementById('chartAttribution').getContext('2d');
     const attrChart = new Chart(ctx, {
       type: 'bar',
@@ -509,7 +677,9 @@
         datasets: [{
           data: [0.184, 0.162, 0.141, 0.119, 0.098, 0.082, 0.078, 0.071, 0.065],
           backgroundColor: '#00E5FF',
-          borderRadius: 4
+          borderColor: '#FFFFFF',
+          borderWidth: 1,
+          borderRadius: 0
         }]
       },
       options: {
@@ -518,8 +688,14 @@
         maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: { grid: { color: '#1E293B' }, ticks: { color: '#94A3B8', font: { size: 9 } } },
-          y: { grid: { display: false }, ticks: { color: '#E2E8F0', font: { size: 9 } } }
+          x: { 
+            grid: { color: '#1E2D4A' }, 
+            ticks: { color: '#94A3B8', font: { family: 'JetBrains Mono', size: 9 } } 
+          },
+          y: { 
+            grid: { display: false }, 
+            ticks: { color: '#FFFFFF', font: { family: 'Space Grotesk', weight: 'bold', size: 10 } } 
+          }
         }
       }
     });
@@ -538,9 +714,9 @@
       const mapToast = document.getElementById('mapToast');
 
       btn.disabled = true;
-      btn.innerHTML = `<span class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span> Processing Sentinel-2...`;
-      statusText.innerText = "Running Isolated MC Dropout & Carbon Audit...";
-      statusInd.className = "w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping";
+      btn.innerHTML = `<span class="animate-spin inline-block w-4 h-4 border-2 border-starkWhite border-t-transparent mr-2"></span> PROCESSING SATELLITE...`;
+      statusText.innerText = "ENGAGING AI & GFW AUDIT...";
+      statusInd.className = "w-3 h-3 bg-flameAmber animate-ping border border-starkWhite";
 
       const startTime = Date.now();
       const interval = setInterval(() => {
@@ -563,21 +739,21 @@
         const tBadge = document.getElementById('temporalBadge');
         if (tBadge) {
           if (data.temporal_status === 'active_fire') {
-            tBadge.className = "text-[8px] font-mono px-1.5 py-0.2 rounded bg-red-950 text-red-400 border border-red-800";
-            tBadge.innerText = "🔥 Active Fire Window";
+            tBadge.className = "skew-persona bg-flameCrimson text-starkWhite font-display text-xs px-2.5 py-0.5 font-black shadow-[2px_2px_0px_#000]";
+            tBadge.innerText = "🔥 ACTIVE WILDFIRE CRISIS";
           } else if (data.temporal_status === 'pre_fire') {
-            tBadge.className = "text-[8px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800";
-            tBadge.innerText = "🟢 Pre-Fire Baseline";
+            tBadge.className = "skew-persona bg-bioEmerald text-void font-display text-xs px-2.5 py-0.5 font-black shadow-[2px_2px_0px_#000]";
+            tBadge.innerText = "🟢 PRE-FIRE BASELINE";
           } else {
-            tBadge.className = "text-[8px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-blue-400 border border-blue-800";
-            tBadge.innerText = "🌱 Post-Fire Recovery";
+            tBadge.className = "skew-persona bg-laserCyan text-void font-display text-xs px-2.5 py-0.5 font-black shadow-[2px_2px_0px_#000]";
+            tBadge.innerText = "🌱 POST-FIRE RECOVERY";
           }
         }
 
         // Update Location Title
         if (data.location_title) {
           document.getElementById('locationTitle').innerHTML = `
-            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-accentFlame shrink-0"></i>
+            <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
             <span class="truncate">${data.location_title}</span>
           `;
           lucide.createIcons();
@@ -594,7 +770,7 @@
         document.getElementById('regimeUpperC').innerText = data.carbon.upper_bound_95ci.total_carbon_loss_tc.toLocaleString();
         document.getElementById('regimeUpperCO2').innerText = data.carbon.upper_bound_95ci.co2_equivalent_tonnes.toLocaleString();
 
-        // Update Calibration
+        // Update Calibration Stats
         document.getElementById('statECE').innerText = data.evaluation.ECE.toFixed(4);
         document.getElementById('statBrier').innerText = data.evaluation.Brier_Score.toFixed(4);
         document.getElementById('statAUSE').innerText = data.evaluation.AUSE.toFixed(4);
@@ -606,29 +782,29 @@
           attrChart.update();
         }
 
-        // Update Diagnostic Image if provided
+        // Update Diagnostic Image
         if (data.diagnostic_image_url) {
           document.getElementById('imgDiagnostic').src = data.diagnostic_image_url + "?t=" + Date.now();
         }
 
-        // Render Real Sentinel-2 Satellite Imagery on the Map for this AOI (Date-Synchronized)
+        // Render Real Sentinel-2 Satellite Imagery on Map
         window.currentSatUrl = data.satellite_imagery_url;
         window.currentSatFCUrl = data.satellite_falsecolor_url;
         window.currentSatBBox = data.bbox;
         renderSatelliteOverlay();
 
-        // Update Satellite Imagery Status Info in UI
+        // Update Satellite Imagery Badge Info
         const satInfo = document.getElementById('satImageryInfo');
         if (satInfo) {
           if (data.temporal_status === 'pre_fire') {
-            satInfo.innerText = "🟢 Pre-Fire S2 (Lush/Unburned)";
-            satInfo.className = "text-[9px] font-mono text-emerald-400";
+            satInfo.innerText = "🟢 S2 PRE-FIRE (UNBURNED)";
+            satInfo.className = "skew-persona bg-void px-1.5 py-0.5 text-bioEmerald border border-bioEmerald/60 font-bold text-[9px]";
           } else if (data.temporal_status === 'active_fire') {
-            satInfo.innerText = "🔥 Active Fire S2 (Charred/Smoke)";
-            satInfo.className = "text-[9px] font-mono text-red-400";
+            satInfo.innerText = "🔥 S2 ACTIVE FIRE (SMOKE/BURN)";
+            satInfo.className = "skew-persona bg-void px-1.5 py-0.5 text-flameCrimson border border-flameCrimson/60 font-bold text-[9px]";
           } else {
-            satInfo.innerText = "🌱 Post-Fire S2 (Recovery)";
-            satInfo.className = "text-[9px] font-mono text-blue-400";
+            satInfo.innerText = "🌱 S2 POST-FIRE";
+            satInfo.className = "skew-persona bg-void px-1.5 py-0.5 text-laserCyan border border-laserCyan/60 font-bold text-[9px]";
           }
         }
 
@@ -644,30 +820,27 @@
             style: function(feature) {
               const p = feature.properties || {};
               if (p.class_id === 2) {
-                // Active Flame Front (High Intensity)
                 return {
                   color: p.stroke_color || '#FF1744',
-                  weight: 3,
+                  weight: 3.5,
                   fillColor: p.fill_color || '#FF1744',
-                  fillOpacity: p.fill_opacity || 0.85,
+                  fillOpacity: 0.90,
                   className: 'pulse-fire'
                 };
               } else if (p.class_id === 1) {
-                // Burn Scar Footprint
                 return {
-                  color: p.stroke_color || '#E65100',
+                  color: p.stroke_color || '#FF5722',
                   weight: 2,
-                  fillColor: p.fill_color || '#FF6D00',
-                  fillOpacity: p.fill_opacity || 0.55
+                  fillColor: p.fill_color || '#FF5722',
+                  fillOpacity: 0.60
                 };
               } else {
-                // Smoke-FCER Envelope
                 return {
-                  color: p.stroke_color || '#78909C',
+                  color: p.stroke_color || '#00E5FF',
                   weight: 1.5,
-                  dashArray: '4, 4',
-                  fillColor: p.fill_color || '#90A4AE',
-                  fillOpacity: p.fill_opacity || 0.22
+                  dashArray: '5, 5',
+                  fillColor: p.fill_color || '#00E5FF',
+                  fillOpacity: 0.20
                 };
               }
             },
@@ -677,17 +850,16 @@
               const icon = p.class_id === 2 ? '🔥' : (p.class_id === 1 ? '🪵' : '💨');
               
               const popupHtml = `
-                <div class="p-2 space-y-1.5 font-sans text-xs">
-                  <div class="font-bold flex items-center gap-1.5 text-white border-b border-slate-700 pb-1">
+                <div class="p-2 space-y-1.5 font-mono text-xs">
+                  <div class="font-display text-base flex items-center gap-1.5 text-white border-b-2 border-edgeDark pb-1">
                     <span>${icon}</span>
-                    <span>${title}</span>
+                    <span class="tracking-wider">${title}</span>
                   </div>
-                  <div class="text-[11px] text-slate-300 leading-snug">${p.description || ''}</div>
-                  <div class="grid grid-cols-2 gap-2 mt-2 pt-1 border-t border-slate-800 text-[10px] font-mono">
-                    <div><span class="text-slate-400">Area:</span> <span class="font-bold text-amber-400">${p.area_ha || '-'} ha</span></div>
-                    <div><span class="text-slate-400">Confidence:</span> <span class="font-bold text-emerald-400">${p.confidence || '95'}%</span></div>
-                    ${p.co2e_tonnes ? `<div><span class="text-slate-400">CO2e:</span> <span class="font-bold text-rose-400">${p.co2e_tonnes.toLocaleString()} t</span></div>` : ''}
-                    ${p.brightness_temp_k ? `<div><span class="text-slate-400">Radiance:</span> <span class="font-bold text-red-400">${p.brightness_temp_k} K</span></div>` : ''}
+                  <div class="text-[11px] text-slate-300">${p.description || ''}</div>
+                  <div class="grid grid-cols-2 gap-2 mt-2 pt-1 border-t border-edgeDark text-[10px]">
+                    <div><span class="text-slate-400">AREA:</span> <span class="font-bold text-flameAmber">${p.area_ha || '-'} ha</span></div>
+                    <div><span class="text-slate-400">CONF:</span> <span class="font-bold text-bioEmerald">${p.confidence || '95'}%</span></div>
+                    ${p.co2e_tonnes ? `<div><span class="text-slate-400">CO2e:</span> <span class="font-bold text-flameCrimson">${p.co2e_tonnes.toLocaleString()} t</span></div>` : ''}
                   </div>
                 </div>
               `;
@@ -708,32 +880,37 @@
 
           map.flyToBounds(geojsonLayer.getBounds(), { padding: [60, 60], duration: 1.2 });
 
-          // Show Wildfire Alert Toast
-          document.getElementById('toastMain').innerText = `🔥 Wildfire Mapped: ${data.carbon.nominal_mean.burned_area_ha.toFixed(1)} ha (${data.observation_date})`;
-          document.getElementById('toastSub').innerText = data.temporal_message || `CO2e Emission: ${data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString()} tonnes | Model: ${data.model_architecture}`;
-          mapToast.className = "absolute top-4 right-16 z-[400] bg-panel/90 backdrop-blur border border-amber-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all";
+          // Show Toast Alert
+          document.getElementById('toastMain').innerText = `🔥 WILDFIRE DETECTED: ${data.carbon.nominal_mean.burned_area_ha.toFixed(1)} HA`;
+          document.getElementById('toastSub').innerText = data.temporal_message || `CO2e: ${data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString()} tonnes | Model: ${data.model_architecture}`;
+          mapToast.className = "absolute top-4 right-16 z-[400] skew-persona bg-obsidian border-2 border-flameCrimson px-5 py-3 shadow-[6px_6px_0px_#FF1744] flex items-center space-x-4 transition-all";
           mapToast.classList.remove('hidden');
         } else {
           // Zero fire detected (Safe / unburned coordinate / pre-fire baseline)
           if (data.bbox) {
             map.flyToBounds(data.bbox, { padding: [60, 60], duration: 1.0 });
           }
-          document.getElementById('toastMain').innerText = data.temporal_message || `🟢 No Wildfire Detected (${data.observation_date})`;
-          document.getElementById('toastSub').innerText = `Vegetasi normal utuh (0.0 ha terbakar). Nihil anomali termal SWIR | Model: ${data.model_architecture}`;
-          mapToast.className = "absolute top-4 right-16 z-[400] bg-panel/90 backdrop-blur border border-emerald-500/40 rounded-xl px-4 py-2.5 shadow-2xl flex items-center space-x-3 transition-all";
+          document.getElementById('toastMain').innerText = data.temporal_message || `🟢 ZERO FIRE DETECTED (${data.observation_date})`;
+          document.getElementById('toastSub').innerText = `Vegetasi normal utuh (0.0 ha terbakar). Nihil anomali termal SWIR.`;
+          mapToast.className = "absolute top-4 right-16 z-[400] skew-persona bg-obsidian border-2 border-bioEmerald px-5 py-3 shadow-[6px_6px_0px_#00E676] flex items-center space-x-4 transition-all";
           mapToast.classList.remove('hidden');
         }
 
-        statusText.innerText = "Inference & Audit Completed";
-        statusInd.className = "w-2.5 h-2.5 rounded-full bg-emerald-400";
+        statusText.innerText = "TELEMETRY SYNCHRONIZED";
+        statusInd.className = "w-3 h-3 bg-bioEmerald border border-starkWhite";
       } catch (err) {
         console.error(err);
-        statusText.innerText = "Inference Error / Offline";
-        statusInd.className = "w-2.5 h-2.5 rounded-full bg-rose-400";
+        statusText.innerText = "INFERENCE OFFLINE";
+        statusInd.className = "w-3 h-3 bg-flameCrimson border border-starkWhite";
       } finally {
         clearInterval(interval);
         btn.disabled = false;
-        btn.innerHTML = `<i data-lucide="satellite" class="w-4 h-4 mr-2"></i> Analyze Fire & Carbon`;
+        btn.innerHTML = `
+          <div class="unskew-persona flex items-center gap-2 font-black">
+            <i data-lucide="flame" class="w-5 h-5"></i>
+            <span>ANALYZE FIRE &amp; CARBON &gt;&gt;</span>
+          </div>
+        `;
         lucide.createIcons();
       }
     }
@@ -745,4 +922,3 @@
   </script>
 </body>
 </html>
-
