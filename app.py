@@ -115,6 +115,96 @@ def generate_raster_mask_image(pred_mask: np.ndarray, out_path: Path) -> str:
     return f"/outputs/{out_path.name}"
 
 
+def generate_individual_panel_rasters(
+    s2_12bands: np.ndarray,
+    pred_mask: np.ndarray,
+    pred_entropy: np.ndarray,
+    epistemic_mi: np.ndarray,
+    nbr: np.ndarray,
+    prefix: str,
+    out_dir: Path,
+) -> Dict[str, str]:
+    """Generate crisp 256x256 PNG rasters for Panels 1-6 for interactive step-by-step UI animations."""
+    def stretch_01(band: np.ndarray, lo: float = 2.0, hi: float = 98.0) -> np.ndarray:
+        p_lo, p_hi = np.percentile(band, (lo, hi))
+        if p_hi <= p_lo:
+            p_hi = p_lo + 1.0
+        return np.clip((band - p_lo) / (p_hi - p_lo), 0.0, 1.0)
+
+    # Panel 1: False Color (SWIR2 [B12], NIR [B8], Red [B4])
+    fc = (np.stack([stretch_01(s2_12bands[11], 2, 99), stretch_01(s2_12bands[7]), stretch_01(s2_12bands[3])], axis=-1) * 255).astype(np.uint8)
+    p1_path = out_dir / f"{prefix}_p1_falsecolor.png"
+    Image.fromarray(fc).save(p1_path)
+
+    # Panel 2: Natural Color (Red [B4], Green [B3], Blue [B2])
+    nat = (np.stack([stretch_01(s2_12bands[3]), stretch_01(s2_12bands[2]), stretch_01(s2_12bands[1])], axis=-1) * 255).astype(np.uint8)
+    p2_path = out_dir / f"{prefix}_p2_natural.png"
+    Image.fromarray(nat).save(p2_path)
+
+    # Panel 3: AI Segmentation Map over darkened satellite backdrop
+    seg_bg = (nat * 0.35).astype(np.uint8)
+    seg_rgb = seg_bg.copy()
+    seg_rgb[pred_mask == 1] = [255, 87, 34]   # Burn Scar -> Flame Orange
+    seg_rgb[pred_mask == 2] = [255, 23, 68]   # Active Flame Front -> Crimson
+    p3_path = out_dir / f"{prefix}_p3_segmentation.png"
+    Image.fromarray(seg_rgb).save(p3_path)
+
+    # Panel 4: Predictive Entropy (Inferno colormap)
+    ent_norm = stretch_01(pred_entropy, 1, 99)
+    ent_rgba = (plt.get_cmap("inferno")(ent_norm)[:, :, :3] * 255).astype(np.uint8)
+    p4_path = out_dir / f"{prefix}_p4_entropy.png"
+    Image.fromarray(ent_rgba).save(p4_path)
+
+    # Panel 5: Epistemic Mutual Information (Magma colormap)
+    mi_norm = stretch_01(epistemic_mi, 1, 99)
+    mi_rgba = (plt.get_cmap("magma")(mi_norm)[:, :, :3] * 255).astype(np.uint8)
+    p5_path = out_dir / f"{prefix}_p5_epistemic.png"
+    Image.fromarray(mi_rgba).save(p5_path)
+
+    # Panel 6: Normalized Burn Ratio (RdYlGn colormap, -0.8 to +0.8)
+    nbr_norm = np.clip((nbr - (-0.8)) / 1.6, 0.0, 1.0)
+    nbr_rgba = (plt.get_cmap("RdYlGn")(nbr_norm)[:, :, :3] * 255).astype(np.uint8)
+    p6_path = out_dir / f"{prefix}_p6_nbr.png"
+    Image.fromarray(nbr_rgba).save(p6_path)
+
+    return {
+        "panel1_falsecolor": f"/outputs/{p1_path.name}",
+        "panel2_natural": f"/outputs/{p2_path.name}",
+        "panel3_segmentation": f"/outputs/{p3_path.name}",
+        "panel4_entropy": f"/outputs/{p4_path.name}",
+        "panel5_epistemic": f"/outputs/{p5_path.name}",
+        "panel6_nbr": f"/outputs/{p6_path.name}",
+    }
+
+
+def extract_pixel_svg_paths(pred_mask: np.ndarray) -> List[Dict[str, Any]]:
+    """Extract 256x256 pixel-space SVG path strings for Panel 3 outline-tracing & fill animation."""
+    svg_paths: List[Dict[str, Any]] = []
+    pixel_transform = Affine.identity()
+    for class_id, stroke_col, fill_col in [(1, "#FF9100", "#FF5722"), (2, "#FFFFFF", "#FF1744")]:
+        submask = (pred_mask == class_id).astype(np.uint8)
+        if submask.sum() == 0:
+            continue
+        for geom_dict, _ in rasterio.features.shapes(submask, mask=submask == 1, transform=pixel_transform):
+            try:
+                poly = shape(geom_dict)
+                if poly.area < 4.0:
+                    continue
+                coords = list(poly.exterior.coords)
+                if len(coords) < 3:
+                    continue
+                d_str = "M " + " L ".join(f"{c[0]:.1f} {c[1]:.1f}" for c in coords) + " Z"
+                svg_paths.append({
+                    "class_id": class_id,
+                    "d": d_str,
+                    "stroke": stroke_col,
+                    "fill": fill_col,
+                })
+            except Exception:
+                continue
+    return svg_paths
+
+
 def generate_dynamic_diagnostic_8panel(
     s2_12bands: np.ndarray,
     pred_mask: np.ndarray,
@@ -330,39 +420,39 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
             "end": "2019-10-31",
             "peak_date": "2019-09-21",
             "pre_date": "2019-05-15",
-            "title": "Pulang Pisau Peatland Wildfire, Central Kalimantan",
-        },
-        "surabaya_2023": {
-            "start": "2023-09-15",
-            "end": "2023-10-25",
-            "peak_date": "2023-09-30",
-            "pre_date": "2023-06-15",
-            "title": "Keputih Sukolilo Savanna Wildfire, Surabaya Timur",
+            "title": "Borneo Peatland Megafire, Indonesia",
         },
         "maui_2023": {
             "start": "2023-08-08",
             "end": "2023-08-31",
             "peak_date": "2023-08-13",
             "pre_date": "2023-06-20",
-            "title": "Lahaina Coastal Wildfire Disaster, Maui Hawaii",
+            "title": "Lahaina Coastal Wildfire Disaster, Maui, USA",
         },
         "australia_2020": {
             "start": "2019-12-15",
             "end": "2020-01-31",
             "peak_date": "2020-01-10",
             "pre_date": "2019-08-15",
-            "title": "Blue Mountains Eucalypt Megablaze, NSW Australia",
+            "title": "Blue Mountains Eucalypt Megablaze, NSW, Australia",
+        },
+        "surabaya_2023": {
+            "start": "2023-09-15",
+            "end": "2023-10-25",
+            "peak_date": "2023-09-30",
+            "pre_date": "2023-06-15",
+            "title": "East Java Savanna Wildfire, Indonesia",
         },
     }
 
     if is_kalimantan:
         scene_key = "kalimantan_2019"
-    elif is_surabaya:
-        scene_key = "surabaya_2023"
     elif is_maui:
         scene_key = "maui_2023"
     elif is_australia:
         scene_key = "australia_2020"
+    elif is_surabaya:
+        scene_key = "surabaya_2023"
     else:
         scene_key = None
 
@@ -376,15 +466,15 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         if req_date_str < timeline["start"]:
             is_during_fire = False
             temporal_status = "pre_fire"
-            temporal_message = f"🟢 Pre-Fire Baseline ({req_date_str}): Vegetasi Normal / Belum Terbakar"
+            temporal_message = f"🟢 Pre-Fire Baseline ({req_date_str}): Healthy Unburned Canopy"
         elif req_date_str > timeline["end"]:
             is_during_fire = False
             temporal_status = "post_fire"
-            temporal_message = f"🌱 Post-Fire Recovery ({req_date_str}): Masa Pemulihan Vegetasi"
+            temporal_message = f"🌱 Post-Fire Recovery ({req_date_str}): Vegetation Regrowth Phase"
         else:
             is_during_fire = True
             temporal_status = "active_fire"
-            temporal_message = f"🔥 Active Wildfire Crisis ({req_date_str}): Kebakaran Terdeteksi"
+            temporal_message = f"🔥 Active Wildfire Crisis ({req_date_str}): High-Intensity Thermal Front"
 
     bench_path = benchmarks_dir / f"{scene_key}.npz" if (scene_key and is_during_fire) else None
 
@@ -396,7 +486,7 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         t_vals = data["transform"]
         transform = Affine(t_vals[0], t_vals[1], t_vals[2], t_vals[3], t_vals[4], t_vals[5])
         crs = str(data["crs"])
-        location_title = str(data["title"])
+        location_title = timeline["title"] if timeline else str(data["title"])
         observation_date = req_date_str
         diagnostic_img = "/outputs/kalimantan_2019_real_wildfire_test.png"
     elif timeline and not is_during_fire:
@@ -554,10 +644,11 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         delta = 0.0115
         bbox_wgs84 = [[lat - delta, lon - delta], [lat + delta, lon + delta]]
 
-    # 8. Dynamically render real 8-panel diagnostic figure for THIS exact target & date
+    # 8. Dynamically render real 8-panel diagnostic figure + individual progressive panels for THIS exact target & date
     pred_entropy_np = uq_out["predictive_entropy"][0].cpu().numpy()
     epistemic_mi_np = uq_out["epistemic_mi"][0].cpu().numpy()
-    diag_file_path = outputs_dir / f"dynamic_diag_{abs(hash((lat, lon, req_date_str))) % 10000}.png"
+    run_hash = abs(hash((lat, lon, req_date_str))) % 10000
+    diag_file_path = outputs_dir / f"dynamic_diag_{run_hash}.png"
     diagnostic_img = generate_dynamic_diagnostic_8panel(
         s2_12bands=s2_12bands,
         pred_mask=pred_mask,
@@ -571,6 +662,16 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         date_str=observation_date,
         out_path=diag_file_path,
     )
+    panels_dict = generate_individual_panel_rasters(
+        s2_12bands=s2_12bands,
+        pred_mask=pred_mask,
+        pred_entropy=pred_entropy_np,
+        epistemic_mi=epistemic_mi_np,
+        nbr=nbr,
+        prefix=f"run_{run_hash}",
+        out_dir=outputs_dir,
+    )
+    svg_paths = extract_pixel_svg_paths(pred_mask)
 
     return {
         "status": "success",
@@ -602,6 +703,8 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
         "satellite_falsecolor_url": sat_fc_rel_url,
         "bbox": bbox_wgs84,
         "diagnostic_image_url": diagnostic_img,
+        "panels": panels_dict,
+        "pixel_svg_paths": svg_paths,
     }
 
 

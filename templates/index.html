@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WATCHTOWER | Wildfire AI & Carbon Intelligence</title>
+  <title>WATCHTOWER | Global Wildfire AI & Carbon Intelligence</title>
   <link rel="icon" type="image/png" href="/assets/favicon.png">
   
   <!-- Google Fonts: Bebas Neue (Persona Display) + Space Grotesk + JetBrains Mono -->
@@ -44,9 +44,6 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -63,55 +60,112 @@
     ::-webkit-scrollbar-thumb:hover { background: #00E5FF; }
 
     /* Persona/Metaphor Stylized Geometry */
-    .skew-persona {
-      transform: skewX(-7deg);
-    }
-    .unskew-persona {
-      transform: skewX(7deg);
-    }
-    .clip-chamfer {
-      clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
-    }
-    .clip-banner {
-      clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
-    }
-    .clip-ribbon-left {
-      clip-path: polygon(0 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
-    }
+    .skew-persona { transform: skewX(-7deg); }
+    .unskew-persona { transform: skewX(7deg); }
     .clip-notch {
       clip-path: polygon(0 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%);
     }
-
-    /* Persona Striped Pattern Accents */
-    .hazard-stripes-red {
-      background: repeating-linear-gradient(-45deg, #FF1744 0, #FF1744 4px, #080E1C 4px, #080E1C 10px);
-    }
-    .hazard-stripes-cyan {
-      background: repeating-linear-gradient(-45deg, #00E5FF 0, #00E5FF 4px, #080E1C 4px, #080E1C 10px);
+    .clip-ribbon-left {
+      clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
     }
 
-    /* Glowing Animations */
-    @keyframes pulseFlame {
-      0% { filter: drop-shadow(0 0 3px #FF1744); stroke-width: 3; }
-      50% { filter: drop-shadow(0 0 14px #FF5722); stroke-width: 4.5; }
-      100% { filter: drop-shadow(0 0 3px #FF1744); stroke-width: 3; }
+    /* Atlus Command Button Hover Slashes */
+    .btn-persona {
+      position: relative;
+      transition: all 0.15s ease-in-out;
     }
-    .pulse-fire {
-      animation: pulseFlame 1.8s infinite ease-in-out;
+    .btn-persona:hover {
+      transform: skewX(-7deg) translateX(2px);
+      box-shadow: 4px 4px 0px #00E5FF;
+    }
+    .btn-action-flame {
+      background: linear-gradient(135deg, #FF1744 0%, #FF5722 60%, #FF9100 100%);
+      box-shadow: 5px 5px 0px #040711, 7px 7px 0px #FF1744;
+    }
+    .btn-action-flame:hover {
+      box-shadow: 7px 7px 0px #040711, 9px 9px 0px #00E5FF;
+      filter: brightness(1.12);
+    }
+    @keyframes ctaPulse {
+      0%, 100% { box-shadow: 4px 4px 0px #040711, 0 0 12px rgba(255, 23, 68, 0.7); border-color: #FFFFFF; }
+      50% { box-shadow: 4px 4px 0px #040711, 0 0 26px rgba(0, 229, 255, 0.95); border-color: #00E5FF; }
+    }
+    .cta-ready-pulse {
+      animation: ctaPulse 1.4s infinite ease-in-out;
     }
 
-    /* Stylized Leaflet Popup */
+    /* Progressive Scanline Wipe Animation for Panels 1-6 */
+    @keyframes scanBarMove {
+      0% { top: 0%; opacity: 1; }
+      90% { top: 96%; opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+    .scan-laser-bar {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: #00E5FF;
+      box-shadow: 0 0 12px #00E5FF, 0 0 24px #FF1744;
+      z-index: 30;
+      pointer-events: none;
+      animation: scanBarMove 0.65s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    }
+    .raster-wipe-hidden {
+      clip-path: inset(0 0 100% 0);
+    }
+    .raster-wipe-reveal {
+      clip-path: inset(0 0 0% 0);
+      transition: clip-path 0.65s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    /* Stage 3: Outline Trace -> Interior Fill Animation (Panel 3 SVG & Map GeoJSON) */
+    @keyframes traceAndFill {
+      0% {
+        stroke-dasharray: 1400;
+        stroke-dashoffset: 1400;
+        fill-opacity: 0;
+      }
+      62% {
+        stroke-dasharray: 1400;
+        stroke-dashoffset: 0;
+        fill-opacity: 0.08;
+      }
+      100% {
+        stroke-dasharray: 1400;
+        stroke-dashoffset: 0;
+        fill-opacity: 0.78;
+      }
+    }
+    .seg-trace-fill {
+      animation: traceAndFill 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    }
+
+    /* Map AOI Laser Sweep */
+    @keyframes mapAoiSweep {
+      0% { transform: translateY(0%); opacity: 0.95; }
+      50% { transform: translateY(100%); opacity: 0.95; }
+      100% { transform: translateY(0%); opacity: 0.95; }
+    }
+    .aoi-laser-line {
+      animation: mapAoiSweep 1.3s ease-in-out infinite;
+    }
+
+    /* Captum XAI Horizontal Bar Grow */
+    .xai-bar-fill {
+      width: 0%;
+      transition: width 0.85s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Stylized Leaflet Popup & Layer Control */
     .custom-fire-popup .leaflet-popup-content-wrapper {
       background: #080E1C;
       color: #FFFFFF;
       border: 2px solid #FF1744;
       border-radius: 0;
-      clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 0 100%);
       box-shadow: 6px 6px 0px rgba(255, 23, 68, 0.4);
     }
-    .custom-fire-popup .leaflet-popup-tip {
-      background: #FF1744;
-    }
+    .custom-fire-popup .leaflet-popup-tip { background: #FF1744; }
     .leaflet-control-layers {
       background: #080E1C !important;
       border: 2px solid #1E2D4A !important;
@@ -121,42 +175,17 @@
       font-size: 11px !important;
       box-shadow: 4px 4px 0px #00E5FF !important;
     }
-    .leaflet-control-layers-separator {
-      border-top-color: #1E2D4A !important;
-    }
-
-    /* Atlus Command Button Hover Slashes */
-    .btn-persona {
-      position: relative;
-      transition: all 0.15s ease-in-out;
-    }
-    .btn-persona:hover {
-      transform: skewX(-7deg) translateX(3px);
-      box-shadow: 4px 4px 0px #00E5FF;
-    }
-    .btn-persona:active {
-      transform: skewX(-7deg) translateY(2px);
-      box-shadow: 0px 0px 0px #00E5FF;
-    }
-    .btn-action-flame {
-      background: linear-gradient(135deg, #FF1744 0%, #FF5722 60%, #FF9100 100%);
-      box-shadow: 5px 5px 0px #040711, 7px 7px 0px #FF1744;
-    }
-    .btn-action-flame:hover {
-      box-shadow: 7px 7px 0px #040711, 9px 9px 0px #00E5FF;
-      filter: brightness(1.15);
-    }
   </style>
 </head>
 <body class="bg-void text-slate-100 flex flex-col h-screen max-h-screen overflow-hidden select-none">
 
   <!-- ================= TOP PERSONA COMMAND HEADER ================= -->
-  <header class="h-16 shrink-0 border-b-2 border-edgeDark bg-obsidian/95 px-4 flex items-center justify-between z-30 relative shadow-2xl">
+  <header class="h-15 shrink-0 border-b-2 border-edgeDark bg-obsidian/95 px-4 py-2 flex items-center justify-between z-30 relative shadow-2xl">
     
     <!-- Left Logo & Tactical Brand -->
     <div class="flex items-center space-x-3">
       <div class="relative skew-persona bg-gradient-to-br from-flameCrimson to-flameOrange p-1.5 shadow-[0_0_15px_rgba(255,23,68,0.6)] border border-starkWhite">
-        <img src="/assets/favicon.png" alt="Logo" class="w-8 h-8 object-contain unskew-persona">
+        <img src="/assets/favicon.png" alt="Logo" class="w-7 h-7 object-contain unskew-persona">
       </div>
       <div>
         <div class="flex items-center space-x-2">
@@ -164,372 +193,450 @@
             WATCHTOWER
           </span>
           <span class="skew-persona bg-starkWhite text-void px-2 py-0.5 font-display text-xs tracking-wider font-black border-l-4 border-laserCyan">
-            AI TACTICAL SATELLITE
+            GLOBAL WILDFIRE &amp; CARBON AI
           </span>
-          <span class="hidden md:inline-block skew-persona bg-flameCrimson text-starkWhite px-1.5 py-0.2 font-mono text-[9px] font-bold">
-            10M S2_GRID
+          <span class="hidden xl:inline-block skew-persona bg-flameCrimson text-starkWhite px-1.5 py-0.2 font-mono text-[9px] font-bold">
+            SENTINEL-2 10M
           </span>
         </div>
-        <p class="text-[10px] font-mono text-slate-400 hidden xl:block tracking-tight">
-          <span class="text-laserCyan font-bold">// UQ-CALIBRATED</span> ATTENTION U-NET &bull; RESNET-50 &bull; GLOBAL FOREST WATCH CARBON AUDIT
+        <p class="text-[10px] font-mono text-slate-400 hidden lg:block tracking-tight">
+          <span class="text-laserCyan font-bold">// STEP 1:</span> SELECT GLOBAL HOTSPOT PINPOINT &rarr; <span class="text-flameAmber font-bold">STEP 2:</span> PRESS ANALYZE FOR 8-STAGE SATELLITE SCAN
         </p>
       </div>
     </div>
 
-    <!-- Center/Right Preset Hotspot Ribbons (Persona Battle Menu Style) -->
-    <div class="flex items-center space-x-2 text-xs">
-      <div class="hidden lg:flex items-center gap-1 font-display text-sm tracking-wider text-slate-400 mr-1 skew-persona">
+    <!-- Right: Curated International Hotspot Pinpoints (No Surabaya, Kalimantan -> Borneo) -->
+    <div class="flex items-center space-x-2.5 text-xs">
+      <div class="hidden md:flex items-center gap-1.5 font-display text-sm tracking-wider text-laserCyan mr-1 skew-persona bg-void px-2.5 py-1 border border-laserCyan/40">
         <span class="w-2 h-2 bg-laserCyan inline-block animate-ping"></span>
-        <span>TARGET PRESETS:</span>
+        <span class="unskew-persona">STEP 1 // SELECT PINPOINT:</span>
       </div>
 
-      <!-- Surabaya Preset -->
-      <button onclick="loadPreset(-7.2920, 112.7950, '2023-09-30', 'Keputih Sukolilo, Surabaya Timur')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-flameOrange/70 px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_rgba(255,87,34,0.4)] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
+      <!-- 01: Borneo Peatland (Indonesia) -->
+      <button id="presetBtn-borneo" onclick="selectHotspot('borneo', -1.8430, 113.9729, '2019-09-21', 'Borneo Peatland Megafire, Indonesia')" class="hotspot-btn skew-persona bg-flameCrimson text-starkWhite border-2 border-starkWhite px-3.5 py-1.5 transition-all duration-150 group shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
         <div class="unskew-persona flex items-center space-x-1.5">
-          <span class="font-display text-base text-flameAmber group-hover:text-starkWhite">01</span>
-          <span class="font-display text-sm tracking-wider">🌾 SURABAYA</span>
+          <span class="font-display text-base text-flameAmber">01</span>
+          <span class="font-display text-sm tracking-wider">🔥 BORNEO PEATLAND</span>
         </div>
       </button>
 
-      <!-- Kalimantan Preset -->
-      <button onclick="loadPreset(-1.8430, 113.9729, '2019-09-21', 'Pulang Pisau Peatland, Central Kalimantan')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
+      <!-- 02: Lahaina, Maui (USA) -->
+      <button id="presetBtn-maui" onclick="selectHotspot('maui', 20.8783, -156.6770, '2023-08-13', 'Lahaina Coastal Wildfire, Maui, USA')" class="hotspot-btn skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3.5 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
         <div class="unskew-persona flex items-center space-x-1.5">
           <span class="font-display text-base text-laserCyan group-hover:text-starkWhite">02</span>
-          <span class="font-display text-sm tracking-wider">🔥 KALIMANTAN</span>
+          <span class="font-display text-sm tracking-wider">🌴 LAHAINA, MAUI</span>
         </div>
       </button>
 
-      <!-- Maui Preset -->
-      <button onclick="loadPreset(20.8783, -156.6770, '2023-08-13', 'Lahaina Coastal Wildfire, Maui Hawaii')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden sm:inline-block">
+      <!-- 03: Blue Mountains, NSW (Australia) -->
+      <button id="presetBtn-australia" onclick="selectHotspot('australia', -33.6820, 150.2850, '2020-01-10', 'Blue Mountains Megablaze, NSW, Australia')" class="hotspot-btn skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3.5 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer">
         <div class="unskew-persona flex items-center space-x-1.5">
-          <span class="font-display text-base text-slate-400 group-hover:text-starkWhite">03</span>
-          <span class="font-display text-sm tracking-wider">🌴 MAUI</span>
-        </div>
-      </button>
-
-      <!-- Australia Preset -->
-      <button onclick="loadPreset(-33.6820, 150.2850, '2020-01-10', 'Blue Mountains Megablaze, NSW Australia')" class="skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer hidden md:inline-block">
-        <div class="unskew-persona flex items-center space-x-1.5">
-          <span class="font-display text-base text-slate-400 group-hover:text-starkWhite">04</span>
-          <span class="font-display text-sm tracking-wider">🇦🇺 NSW</span>
+          <span class="font-display text-base text-bioEmerald group-hover:text-starkWhite">03</span>
+          <span class="font-display text-sm tracking-wider">🇦🇺 NSW AUSTRALIA</span>
         </div>
       </button>
     </div>
   </header>
 
-  <!-- ================= MAIN VIEWPORT (MAP + PERSONA ANALYTICS) ================= -->
+  <!-- ================= MAIN VIEWPORT (MAP + 8-PANEL PROGRESSIVE MATRIX) ================= -->
   <div class="flex-1 min-h-0 flex overflow-hidden relative">
 
     <!-- Interactive Leaflet Map Viewport -->
     <div id="map" class="flex-1 h-full z-10 relative">
 
-      <!-- Stylized HUD Crosshair Corners -->
-      <div class="absolute top-3 right-3 z-[350] pointer-events-none font-mono text-[9px] text-laserCyan tracking-widest bg-obsidian/80 px-2 py-1 border border-laserCyan/40 skew-persona">
-        SYS_STATUS: ENGAGED // EPSG:4326
+      <!-- Guided Mission Prompt Banner on Top-Center of Map -->
+      <div id="missionBanner" class="absolute top-3 left-1/2 -translate-x-1/2 z-[400] skew-persona bg-obsidian/95 border-2 border-laserCyan px-5 py-2 shadow-[6px_6px_0px_#040711] flex items-center space-x-3 pointer-events-none">
+        <div id="missionDot" class="w-3 h-3 bg-laserCyan animate-ping shrink-0 border border-starkWhite"></div>
+        <div class="unskew-persona text-center">
+          <span id="missionTitle" class="font-display text-base tracking-widest text-starkWhite block leading-none">
+            PINPOINT LOCKED: BORNEO PEATLAND (113.9729°E, 1.8430°S)
+          </span>
+          <span id="missionSub" class="text-laserCyan font-mono text-[10px] block mt-0.5">
+            Press [ANALYZE FIRE &amp; CARBON] on the left command deck to initiate 8-panel Sentinel-2 scan.
+          </span>
+        </div>
       </div>
 
-      <!-- Floating Alert Notification (Persona Style Cutout Banner) -->
-      <div id="mapToast" class="absolute top-4 right-16 z-[400] hidden skew-persona bg-obsidian border-2 border-flameCrimson px-5 py-3 shadow-[6px_6px_0px_#FF1744] flex items-center space-x-4 transition-all">
-        <div class="w-3.5 h-3.5 bg-flameCrimson animate-ping shrink-0 border border-starkWhite"></div>
-        <div class="unskew-persona">
-          <span id="toastMain" class="font-display text-lg tracking-wider text-starkWhite block leading-none">WILDFIRE MAPPED</span>
-          <span id="toastSub" class="text-slate-300 font-mono text-[10px] block mt-0.5">Telemetry calibrated to Sentinel-2 grid.</span>
+      <!-- Stylized Floating Map Legend -->
+      <div class="absolute bottom-5 left-5 z-[400] skew-persona bg-obsidian/95 border-2 border-edgeDark p-3 shadow-[5px_5px_0px_#000] space-y-2 text-[11px] w-60 pointer-events-auto">
+        <div class="unskew-persona font-display text-sm tracking-wider text-starkWhite border-b-2 border-edgeDark pb-1 flex items-center justify-between">
+          <span class="flex items-center gap-1.5"><i data-lucide="layers" class="w-3.5 h-3.5 text-laserCyan"></i> SATELLITE LAYERS</span>
+          <span class="text-[8px] font-mono text-laserCyan bg-void px-1.5 py-0.5 border border-laserCyan/40">10M S2-L2A</span>
         </div>
-        <button onclick="document.getElementById('mapToast').classList.add('hidden')" class="unskew-persona text-slate-400 hover:text-flameCrimson text-xl font-bold ml-3 cursor-pointer">&times;</button>
-      </div>
-
-      <!-- Stylized Floating Map Legend (Persona Slash Box) -->
-      <div class="absolute bottom-6 left-6 z-[400] skew-persona bg-obsidian/95 border-2 border-edgeDark p-3.5 shadow-[5px_5px_0px_#000] space-y-2.5 text-[11px] w-64 pointer-events-auto">
-        <div class="unskew-persona font-display text-base tracking-wider text-starkWhite border-b-2 border-edgeDark pb-1 flex items-center justify-between">
-          <span class="flex items-center gap-1.5"><i data-lucide="layers" class="w-4 h-4 text-laserCyan"></i> MAP TELEMETRY</span>
-          <span class="text-[9px] font-mono text-laserCyan bg-void px-1.5 py-0.5 border border-laserCyan/40">10M RESOLUTION</span>
-        </div>
-        <div class="unskew-persona space-y-2 font-mono text-[10px]">
+        <div class="unskew-persona space-y-1.5 font-mono text-[10px]">
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 bg-flameCrimson border border-starkWhite shadow-[0_0_8px_#FF1744] shrink-0"></span>
+            <span class="w-3 h-3 bg-flameCrimson border border-starkWhite shadow-[0_0_8px_#FF1744] shrink-0"></span>
             <span class="text-starkWhite font-bold">Active Flame Front (Class 2)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 bg-flameOrange border border-starkWhite shrink-0"></span>
+            <span class="w-3 h-3 bg-flameOrange border border-starkWhite shrink-0"></span>
             <span class="text-slate-200">Burn Scar Footprint (Class 1)</span>
           </div>
           <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 bg-slate-600/70 border border-starkWhite border-dashed shrink-0"></span>
-            <span class="text-slate-300">Smoke-FCER Aerosol Plume</span>
-          </div>
-          <div class="flex items-center gap-2">
-            <span class="w-3.5 h-3.5 bg-laserCyan/20 border border-laserCyan border-dashed shrink-0"></span>
-            <span class="text-laserCyan">2.56 km Sentinel-2 AOI Patch</span>
+            <span class="w-3 h-3 bg-laserCyan/20 border border-laserCyan border-dashed shrink-0"></span>
+            <span class="text-laserCyan">2.56 km Sentinel-2 Scan Box</span>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- ================= FLOATING COMMAND CARD (TACTICAL TARGET ACQUISITION) ================= -->
-    <div class="absolute top-4 left-4 z-[400] w-84 bg-obsidian/95 border-2 border-edgeDark p-4 shadow-[8px_8px_0px_#040711] space-y-3.5 clip-notch">
+    <!-- ================= FLOATING LEFT COMMAND DECK (STEP 1 & STEP 2) ================= -->
+    <div class="absolute top-3 left-3 z-[400] w-80 bg-obsidian/95 border-2 border-edgeDark p-3.5 shadow-[8px_8px_0px_#040711] space-y-3 clip-notch">
       
-      <!-- Card Header Banner -->
-      <div class="flex items-center justify-between pb-2 border-b-2 border-edgeDark">
-        <div class="skew-persona bg-flameCrimson text-starkWhite px-2.5 py-0.5 font-display text-sm tracking-wider font-black shadow-[2px_2px_0px_#000]">
-          /// TARGET ACQUISITION
+      <!-- Step 1 Header Banner -->
+      <div class="flex items-center justify-between pb-1.5 border-b-2 border-edgeDark">
+        <div class="skew-persona bg-laserCyan text-void px-2 py-0.5 font-display text-sm tracking-wider font-black shadow-[2px_2px_0px_#000]">
+          /// 01 PINPOINT TARGET
         </div>
-        <span class="font-mono text-[10px] text-laserCyan tracking-tight">S2-L2A COG</span>
+        <span id="badgeTargetType" class="font-mono text-[9px] text-flameAmber bg-void px-1.5 py-0.5 border border-flameAmber/40 font-bold">
+          BORNEO HOTSPOT
+        </span>
+      </div>
+
+      <!-- Quick 3-Hotspot Selector Grid inside Left Card -->
+      <div class="grid grid-cols-3 gap-1.5 font-display text-xs">
+        <button type="button" onclick="selectHotspot('borneo', -1.8430, 113.9729, '2019-09-21', 'Borneo Peatland Megafire, Indonesia')" id="cardBtn-borneo" class="skew-persona bg-flameCrimson text-starkWhite border border-starkWhite py-1 px-1 text-center cursor-pointer tracking-wider">
+          <span class="unskew-persona block">🔥 BORNEO</span>
+        </button>
+        <button type="button" onclick="selectHotspot('maui', 20.8783, -156.6770, '2023-08-13', 'Lahaina Coastal Wildfire, Maui, USA')" id="cardBtn-maui" class="skew-persona bg-void text-slate-300 border border-edgeDark hover:border-laserCyan py-1 px-1 text-center cursor-pointer tracking-wider">
+          <span class="unskew-persona block">🌴 MAUI</span>
+        </button>
+        <button type="button" onclick="selectHotspot('australia', -33.6820, 150.2850, '2020-01-10', 'Blue Mountains Megablaze, NSW, Australia')" id="cardBtn-australia" class="skew-persona bg-void text-slate-300 border border-edgeDark hover:border-laserCyan py-1 px-1 text-center cursor-pointer tracking-wider">
+          <span class="unskew-persona block">🇦🇺 NSW</span>
+        </button>
       </div>
 
       <!-- Lat & Lon Inputs -->
       <div class="grid grid-cols-2 gap-2 text-xs font-mono">
         <div>
-          <label class="text-[9px] text-slate-400 uppercase tracking-wider block mb-0.5 font-bold">LATITUDE</label>
-          <input id="inputLat" type="number" step="0.0001" value="-1.8430" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2.5 py-1.5 text-starkWhite font-bold focus:outline-none transition-colors">
+          <label class="text-[8px] text-slate-400 uppercase tracking-wider block mb-0.5 font-bold">LATITUDE</label>
+          <input id="inputLat" type="number" step="0.0001" value="-1.8430" class="w-full bg-void border border-edgeDark focus:border-laserCyan rounded-none px-2 py-1 text-starkWhite font-bold focus:outline-none">
         </div>
         <div>
-          <label class="text-[9px] text-slate-400 uppercase tracking-wider block mb-0.5 font-bold">LONGITUDE</label>
-          <input id="inputLon" type="number" step="0.0001" value="113.9729" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2.5 py-1.5 text-starkWhite font-bold focus:outline-none transition-colors">
+          <label class="text-[8px] text-slate-400 uppercase tracking-wider block mb-0.5 font-bold">LONGITUDE</label>
+          <input id="inputLon" type="number" step="0.0001" value="113.9729" class="w-full bg-void border border-edgeDark focus:border-laserCyan rounded-none px-2 py-1 text-starkWhite font-bold focus:outline-none">
         </div>
       </div>
 
-      <!-- Observation Date & Persona Temporal Phase Toggles -->
+      <!-- Observation Date & Temporal Phase Toggles -->
       <div class="space-y-1.5">
         <div class="flex items-center justify-between">
-          <label class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold font-mono">OBSERVATION DATE</label>
-          <span id="temporalBadge" class="skew-persona bg-flameOrange text-void font-display text-xs px-2 py-0.2 font-black">
-            OBSERVATION MODE
+          <label class="text-[8px] text-slate-400 uppercase tracking-wider block font-bold font-mono">OBSERVATION DATE</label>
+          <span id="temporalBadge" class="skew-persona bg-flameOrange text-void font-display text-[11px] px-1.5 py-0.1 font-black">
+            CRISIS WINDOW
           </span>
         </div>
-        <input id="inputDate" type="date" value="2019-09-21" onchange="runAnalysis()" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2.5 py-1 text-starkWhite font-mono text-xs focus:outline-none cursor-pointer">
+        <input id="inputDate" type="date" value="2019-09-21" class="w-full bg-void border border-edgeDark focus:border-laserCyan rounded-none px-2 py-1 text-starkWhite font-mono text-xs focus:outline-none cursor-pointer">
         
-        <!-- Persona Dual Phase Trigger Buttons -->
-        <div class="grid grid-cols-2 gap-2 pt-1 font-display">
-          <button type="button" onclick="setTemporalPhase('pre')" class="btn-persona skew-persona bg-carbon hover:bg-bioEmerald hover:text-void text-starkWhite border-2 border-bioEmerald/60 py-1.5 px-2 text-xs tracking-wider transition-all duration-150 cursor-pointer text-center shadow-[3px_3px_0px_#000]">
-            <div class="unskew-persona flex items-center justify-center gap-1">
-              <span>⏪ PRE-FIRE (BASE)</span>
-            </div>
+        <div class="grid grid-cols-2 gap-1.5 pt-0.5 font-display">
+          <button type="button" onclick="setTemporalPhase('pre')" class="btn-persona skew-persona bg-carbon hover:bg-bioEmerald hover:text-void text-starkWhite border border-bioEmerald/60 py-1 px-1.5 text-[11px] tracking-wider cursor-pointer text-center">
+            <span class="unskew-persona block">⏪ PRE-FIRE BASE</span>
           </button>
-          <button type="button" onclick="setTemporalPhase('peak')" class="btn-persona skew-persona bg-flameCrimson text-starkWhite border-2 border-starkWhite py-1.5 px-2 text-xs tracking-wider transition-all duration-150 cursor-pointer text-center shadow-[3px_3px_0px_#000]">
-            <div class="unskew-persona flex items-center justify-center gap-1 font-black">
-              <span>🔥 PEAK FIRE (CRISIS)</span>
-            </div>
+          <button type="button" onclick="setTemporalPhase('peak')" class="btn-persona skew-persona bg-flameCrimson text-starkWhite border border-starkWhite py-1 px-1.5 text-[11px] tracking-wider cursor-pointer text-center">
+            <span class="unskew-persona block font-black">🔥 PEAK FIRE</span>
           </button>
         </div>
       </div>
 
       <!-- AI Architecture Selection -->
       <div class="space-y-1">
-        <label class="text-[9px] text-slate-400 uppercase tracking-wider block font-bold font-mono">NEURAL BACKBONE</label>
-        <select id="selectModel" class="w-full bg-void border-2 border-edgeDark focus:border-laserCyan rounded-none px-2 py-1.5 text-xs text-starkWhite font-mono focus:outline-none">
-          <option value="attention_unet_r50">SSL4EO ATTENTION U-NET R-50 (~26.2M)</option>
-          <option value="compact_vit_s16">SSL4EO COMPACT ViT-S/16 SEG (~24.3M)</option>
+        <label class="text-[8px] text-slate-400 uppercase tracking-wider block font-bold font-mono">NEURAL ARCHITECTURE</label>
+        <select id="selectModel" class="w-full bg-void border border-edgeDark focus:border-laserCyan rounded-none px-2 py-1 text-[11px] text-starkWhite font-mono focus:outline-none">
+          <option value="attention_unet_r50">SSL4EO ATTENTION U-NET R-50</option>
+          <option value="compact_vit_s16">SSL4EO COMPACT ViT-S/16 SEG</option>
         </select>
       </div>
 
-      <!-- Satellite Band Mode Toggle (Natural RGB vs SWIR) -->
-      <div class="pt-2 border-t-2 border-edgeDark space-y-1.5">
-        <div class="flex items-center justify-between text-[10px] font-mono">
-          <span class="text-slate-400 font-bold uppercase tracking-wider flex items-center gap-1">
-            <i data-lucide="satellite" class="w-3.5 h-3.5 text-laserCyan"></i> S2 RASTER
-          </span>
-          <span id="satImageryInfo" class="skew-persona bg-void px-1.5 py-0.5 text-bioEmerald border border-bioEmerald/40 font-bold text-[9px]">
-            SENTINEL-2 10M
-          </span>
+      <!-- Satellite Map Raster Mode Toggle -->
+      <div class="pt-1.5 border-t border-edgeDark space-y-1">
+        <div class="flex items-center justify-between text-[9px] font-mono">
+          <span class="text-slate-400 font-bold uppercase">MAP S2 OVERLAY</span>
+          <span id="satImageryInfo" class="text-laserCyan font-bold">READY TO SCAN</span>
         </div>
-        <div class="grid grid-cols-2 gap-2 font-display">
-          <button id="btnSatNatural" type="button" onclick="setSatelliteMode('natural')" class="skew-persona bg-bioEmerald text-void border border-starkWhite py-1 px-1 text-xs tracking-wider font-black text-center cursor-pointer shadow-[2px_2px_0px_#000]">
+        <div class="grid grid-cols-2 gap-1.5 font-display">
+          <button id="btnSatNatural" type="button" onclick="setSatelliteMode('natural')" class="skew-persona bg-bioEmerald text-void border border-starkWhite py-0.5 px-1 text-[11px] tracking-wider font-black text-center cursor-pointer">
             <span class="unskew-persona">🌿 NATURAL RGB</span>
           </button>
-          <button id="btnSatFalse" type="button" onclick="setSatelliteMode('falsecolor')" class="skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-flameAmber py-1 px-1 text-xs tracking-wider text-center cursor-pointer shadow-[2px_2px_0px_#000]">
-            <span class="unskew-persona">🛰️ SWIR FIRE GLOW</span>
+          <button id="btnSatFalse" type="button" onclick="setSatelliteMode('falsecolor')" class="skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-flameAmber py-0.5 px-1 text-[11px] tracking-wider text-center cursor-pointer">
+            <span class="unskew-persona">🛰️ FALSE COLOR</span>
           </button>
         </div>
       </div>
 
-      <!-- MASTER ACTION BUTTON (PERSONA BLAZING SLANTED BANNER) -->
-      <button id="btnRun" onclick="runAnalysis()" class="w-full py-3 skew-persona btn-action-flame text-starkWhite font-display text-xl tracking-widest uppercase transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer border-2 border-starkWhite mt-2">
-        <div class="unskew-persona flex items-center gap-2 font-black">
-          <i data-lucide="flame" class="w-5 h-5 animate-bounce"></i>
-          <span>ANALYZE FIRE &amp; CARBON &gt;&gt;</span>
+      <!-- STEP 2: MASTER ANALYZE ACTION BUTTON -->
+      <div class="pt-1">
+        <div class="flex items-center justify-between text-[9px] font-mono text-flameAmber mb-1">
+          <span class="font-bold">// STEP 02: EXECUTE TELEMETRY</span>
+          <span id="step2Hint" class="animate-pulse text-laserCyan">CLICK BELOW &darr;</span>
         </div>
-      </button>
-
-      <p class="text-[9px] font-mono text-slate-500 text-center uppercase tracking-wider">
-        Click or drag pin on globe to acquire coordinates
-      </p>
+        <button id="btnRun" onclick="runAnalysis()" class="w-full py-2.5 skew-persona btn-action-flame cta-ready-pulse text-starkWhite font-display text-xl tracking-widest uppercase transition-all duration-150 flex items-center justify-center gap-2 cursor-pointer border-2 border-starkWhite">
+          <div class="unskew-persona flex items-center gap-2 font-black">
+            <i data-lucide="scan-line" class="w-5 h-5"></i>
+            <span>ANALYZE FIRE &amp; CARBON &gt;&gt;</span>
+          </div>
+        </button>
+      </div>
     </div>
 
-    <!-- ================= RIGHT PERSONA ANALYTICS PANEL ================= -->
-    <div id="analyticsPanel" class="w-96 bg-obsidian/95 border-l-2 border-edgeDark p-4 flex flex-col overflow-y-auto space-y-4 z-20 shadow-[-10px_0_30px_rgba(0,0,0,0.8)]">
+    <!-- ================= RIGHT 8-PANEL PROGRESSIVE TELEMETRY DECK ================= -->
+    <div id="analyticsPanel" class="w-[540px] shrink-0 bg-obsidian/95 border-l-2 border-edgeDark p-3.5 flex flex-col overflow-y-auto space-y-3 z-20 shadow-[-12px_0_30px_rgba(0,0,0,0.85)]">
       
-      <!-- System Telemetry Status Bar -->
-      <div id="statusContainer" class="p-2.5 bg-carbon border-2 border-edgeDark flex items-center justify-between clip-ribbon-left">
-        <div class="flex items-center space-x-2">
-          <div id="statusIndicator" class="w-3 h-3 bg-bioEmerald animate-pulse border border-starkWhite"></div>
-          <span id="statusText" class="font-display text-sm tracking-wider text-starkWhite uppercase">SYSTEM ONLINE</span>
-        </div>
-        <span id="execTimer" class="font-mono text-xs font-bold text-laserCyan bg-void px-2 py-0.5 border border-edgeDark">0.0s</span>
-      </div>
-
-      <!-- Target Location Card (Persona Cutout) -->
-      <div class="p-3 bg-carbon border-2 border-edgeDark space-y-1 relative">
+      <!-- Top Telemetry Stage Bar -->
+      <div class="p-2.5 bg-carbon border-2 border-edgeDark space-y-1.5">
         <div class="flex items-center justify-between">
-          <span class="text-[9px] font-mono uppercase tracking-widest text-slate-400 font-bold">// AOI TARGET</span>
-          <span id="badgeTargetType" class="skew-persona bg-laserCyan text-void font-display text-xs px-2 py-0.2 font-black">
-            HISTORICAL PRESET
-          </span>
+          <div class="flex items-center space-x-2">
+            <div id="statusIndicator" class="w-3 h-3 bg-laserCyan animate-pulse border border-starkWhite"></div>
+            <span id="statusText" class="font-display text-sm tracking-wider text-starkWhite uppercase">
+              STANDBY // AWAITING SATELLITE SCAN
+            </span>
+          </div>
+          <span id="execTimer" class="font-mono text-[11px] font-bold text-laserCyan bg-void px-2 py-0.5 border border-edgeDark">STAGE 0/8</span>
         </div>
-        <div id="locationTitle" class="font-display text-lg tracking-wider text-starkWhite flex items-center gap-1.5 truncate pt-0.5">
-          <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
-          <span class="truncate">Pulang Pisau, Central Kalimantan</span>
+        <!-- 8-Stage Progress Bar -->
+        <div class="w-full h-1.5 bg-void border border-edgeDark overflow-hidden">
+          <div id="scanProgressBar" class="h-full bg-gradient-to-r from-laserCyan via-flameOrange to-flameCrimson transition-all duration-300" style="width: 0%"></div>
         </div>
-        <div id="locationCoords" class="font-mono text-[10px] text-slate-400">-1.8430°, 113.9729° | 2019-09-21</div>
+        <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+          <span id="locationTitle" class="text-starkWhite font-bold truncate">Borneo Peatland Megafire, Indonesia</span>
+          <span id="locationCoords" class="text-laserCyan shrink-0">-1.8430°, 113.9729° | 2019-09-21</span>
+        </div>
       </div>
 
-      <!-- ================= GFW CARBON LOSS CARD ================= -->
-      <div class="p-4 bg-carbon border-2 border-edgeDark space-y-3 relative shadow-[5px_5px_0px_#040711]">
-        
-        <!-- Header Banner -->
-        <div class="flex items-center justify-between pb-1 border-b-2 border-edgeDark">
-          <div class="skew-persona bg-flameOrange text-void font-display text-sm tracking-wider font-black px-2.5 py-0.5 shadow-[2px_2px_0px_#000]">
-            /// 01 GFW CARBON LOSS AUDIT
+      <!-- ================= PANELS 01 TO 06: PROGRESSIVE RASTER MATRIX (3x2 GRID) ================= -->
+      <div class="space-y-1.5">
+        <div class="flex items-center justify-between">
+          <div class="skew-persona bg-flameCrimson text-starkWhite font-display text-xs tracking-wider font-black px-2 py-0.5">
+            /// PANELS 01–06: SATELLITE &amp; BAYESIAN UNCERTAINTY SCAN
           </div>
-          <span class="font-mono text-[9px] text-bioEmerald bg-void px-1.5 py-0.5 border border-bioEmerald/40 font-bold">
-            IPCC TIER-3
+          <span id="scanSubStatus" class="font-mono text-[9px] text-slate-400">256&times;256 PATCH @ 10M</span>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+          
+          <!-- PANEL 01: FALSE COLOR (SWIR-NIR-R) -->
+          <div id="cardPanel1" class="bg-void border-2 border-edgeDark relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300">
+            <div class="z-20 bg-obsidian/90 px-1.5 py-0.5 border-b border-edgeDark flex items-center justify-between">
+              <span class="font-display text-xs tracking-wider text-flameAmber">01 // FALSE COLOR</span>
+              <span id="badgeP1" class="font-mono text-[8px] text-slate-500">STANDBY</span>
+            </div>
+            <div class="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden">
+              <div id="placeholderP1" class="text-center font-mono text-[9px] text-slate-600 p-2">
+                [SWIR-NIR-RED]<br>AWAITING SCAN
+              </div>
+              <div id="laserP1" class="hidden scan-laser-bar"></div>
+              <img id="imgPanel1" src="" alt="False Color" class="absolute inset-0 w-full h-full object-cover raster-wipe-hidden">
+            </div>
+          </div>
+
+          <!-- PANEL 02: NATURAL COLOR (TCI RGB) -->
+          <div id="cardPanel2" class="bg-void border-2 border-edgeDark relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300">
+            <div class="z-20 bg-obsidian/90 px-1.5 py-0.5 border-b border-edgeDark flex items-center justify-between">
+              <span class="font-display text-xs tracking-wider text-bioEmerald">02 // NATURAL RGB</span>
+              <span id="badgeP2" class="font-mono text-[8px] text-slate-500">STANDBY</span>
+            </div>
+            <div class="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden">
+              <div id="placeholderP2" class="text-center font-mono text-[9px] text-slate-600 p-2">
+                [TRUE COLOR RGB]<br>AWAITING SCAN
+              </div>
+              <div id="laserP2" class="hidden scan-laser-bar"></div>
+              <img id="imgPanel2" src="" alt="Natural Color" class="absolute inset-0 w-full h-full object-cover raster-wipe-hidden">
+            </div>
+          </div>
+
+          <!-- PANEL 03: AI SEGMENTATION (OUTLINE TRACE -> INTERIOR FILL) -->
+          <div id="cardPanel3" class="bg-void border-2 border-edgeDark relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300">
+            <div class="z-20 bg-obsidian/90 px-1.5 py-0.5 border-b border-edgeDark flex items-center justify-between">
+              <span class="font-display text-xs tracking-wider text-flameCrimson">03 // AI SEGMENTATION</span>
+              <span id="badgeP3" class="font-mono text-[8px] text-slate-500">STANDBY</span>
+            </div>
+            <div class="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden bg-[#060B16]">
+              <div id="placeholderP3" class="text-center font-mono text-[9px] text-slate-600 p-2">
+                [U-NET / ViT MASK]<br>AWAITING SCAN
+              </div>
+              <div id="laserP3" class="hidden scan-laser-bar"></div>
+              <img id="imgPanel3" src="" alt="AI Segmentation" class="absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500">
+              <!-- Animated SVG Outline Trace & Fill Overlay -->
+              <svg id="svgPanel3" viewBox="0 0 256 256" class="absolute inset-0 w-full h-full z-10 pointer-events-none"></svg>
+            </div>
+          </div>
+
+          <!-- PANEL 04: PREDICTIVE ENTROPY -->
+          <div id="cardPanel4" class="bg-void border-2 border-edgeDark relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300">
+            <div class="z-20 bg-obsidian/90 px-1.5 py-0.5 border-b border-edgeDark flex items-center justify-between">
+              <span class="font-display text-xs tracking-wider text-laserCyan">04 // PRED. ENTROPY</span>
+              <span id="badgeP4" class="font-mono text-[8px] text-slate-500">STANDBY</span>
+            </div>
+            <div class="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden">
+              <div id="placeholderP4" class="text-center font-mono text-[9px] text-slate-600 p-2">
+                [TOTAL UNCERTAINTY]<br>AWAITING SCAN
+              </div>
+              <div id="laserP4" class="hidden scan-laser-bar"></div>
+              <img id="imgPanel4" src="" alt="Predictive Entropy" class="absolute inset-0 w-full h-full object-cover raster-wipe-hidden">
+            </div>
+          </div>
+
+          <!-- PANEL 05: EPISTEMIC MI -->
+          <div id="cardPanel5" class="bg-void border-2 border-edgeDark relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300">
+            <div class="z-20 bg-obsidian/90 px-1.5 py-0.5 border-b border-edgeDark flex items-center justify-between">
+              <span class="font-display text-xs tracking-wider text-laserCyan">05 // EPISTEMIC MI</span>
+              <span id="badgeP5" class="font-mono text-[8px] text-slate-500">STANDBY</span>
+            </div>
+            <div class="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden">
+              <div id="placeholderP5" class="text-center font-mono text-[9px] text-slate-600 p-2">
+                [BAYESIAN T=6 MI]<br>AWAITING SCAN
+              </div>
+              <div id="laserP5" class="hidden scan-laser-bar"></div>
+              <img id="imgPanel5" src="" alt="Epistemic MI" class="absolute inset-0 w-full h-full object-cover raster-wipe-hidden">
+            </div>
+          </div>
+
+          <!-- PANEL 06: NORMALIZED BURN RATIO (NBR) -->
+          <div id="cardPanel6" class="bg-void border-2 border-edgeDark relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300">
+            <div class="z-20 bg-obsidian/90 px-1.5 py-0.5 border-b border-edgeDark flex items-center justify-between">
+              <span class="font-display text-xs tracking-wider text-flameOrange">06 // NBR BURN INDEX</span>
+              <span id="badgeP6" class="font-mono text-[8px] text-slate-500">STANDBY</span>
+            </div>
+            <div class="relative flex-1 w-full h-full flex items-center justify-center overflow-hidden">
+              <div id="placeholderP6" class="text-center font-mono text-[9px] text-slate-600 p-2">
+                [(NIR-SWIR)/(NIR+SWIR)]<br>AWAITING SCAN
+              </div>
+              <div id="laserP6" class="hidden scan-laser-bar"></div>
+              <img id="imgPanel6" src="" alt="NBR Index" class="absolute inset-0 w-full h-full object-cover raster-wipe-hidden">
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Compact Bayesian Calibration Metrics Strip (Unlocks with Panel 5) -->
+        <div class="grid grid-cols-3 gap-2 font-mono text-center pt-0.5">
+          <div class=" py-1 px-2 bg-carbon border border-edgeDark flex items-center justify-between">
+            <span class="text-[8px] text-slate-400 font-bold">ECE:</span>
+            <span id="statECE" class="font-display text-sm text-laserCyan font-black">0.0000</span>
+          </div>
+          <div class="py-1 px-2 bg-carbon border border-edgeDark flex items-center justify-between">
+            <span class="text-[8px] text-slate-400 font-bold">BRIER:</span>
+            <span id="statBrier" class="font-display text-sm text-flameAmber font-black">0.0000</span>
+          </div>
+          <div class="py-1 px-2 bg-carbon border border-edgeDark flex items-center justify-between">
+            <span class="text-[8px] text-slate-400 font-bold">AUSE:</span>
+            <span id="statAUSE" class="font-display text-sm text-bioEmerald font-black">0.0000</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= PANEL 07: CAPTUM SPECTRAL XAI (ANIMATED HORIZONTAL BARS) ================= -->
+      <div id="cardPanel7" class="p-3 bg-carbon border-2 border-edgeDark space-y-2 relative transition-colors duration-300">
+        <div class="flex items-center justify-between pb-1 border-b border-edgeDark">
+          <div class="skew-persona bg-flameAmber text-void font-display text-xs tracking-wider font-black px-2 py-0.5">
+            /// 07 CAPTUM SPECTRAL XAI ATTRIBUTION
+          </div>
+          <span id="badgeP7" class="font-mono text-[9px] text-slate-400">INTEGRATED GRADIENTS</span>
+        </div>
+        <!-- Animated Custom Horizontal Bar List -->
+        <div id="xaiBarsContainer" class="space-y-1 font-mono text-[10px]">
+          <!-- Dynamically populated & animated left-to-right -->
+        </div>
+      </div>
+
+      <!-- ================= PANEL 08: GFW CARBON STOCK AUDIT (ANIMATED COUNT-UP NUMBERS) ================= -->
+      <div id="cardPanel8" class="p-3 bg-carbon border-2 border-edgeDark space-y-2.5 relative transition-colors duration-300">
+        <div class="flex items-center justify-between pb-1 border-b border-edgeDark">
+          <div class="skew-persona bg-flameOrange text-void font-display text-xs tracking-wider font-black px-2 py-0.5">
+            /// 08 GFW CARBON STOCK AUDIT (IPCC TIER-3)
+          </div>
+          <span id="badgeP8" class="font-mono text-[9px] text-bioEmerald bg-void px-1.5 py-0.5 border border-bioEmerald/40 font-bold">
+            STANDBY
           </span>
         </div>
 
-        <!-- Big Stat Blocks (Persona Giant Condensed Font) -->
+        <!-- Primary Count-Up Counters -->
         <div class="grid grid-cols-2 gap-2 text-center">
-          <!-- Burned Area -->
-          <div class="p-3 bg-void border-2 border-edgeDark relative">
-            <span class="font-mono text-[9px] text-slate-400 uppercase tracking-wider block font-bold">BURNED AREA</span>
-            <div class="flex items-baseline justify-center gap-1 my-0.5">
-              <span id="statBurnedHa" class="font-display text-4xl text-flameAmber font-black tracking-wider leading-none">244.5</span>
-            </div>
-            <span class="font-mono text-[9px] text-slate-400 uppercase">HECTARES (HA)</span>
+          <div class="p-2 bg-void border border-edgeDark">
+            <span class="font-mono text-[8px] text-slate-400 uppercase block font-bold">BURNED SCAR AREA</span>
+            <span id="statBurnedHa" class="font-display text-3xl text-flameAmber font-black tracking-wider leading-none">0.0</span>
+            <span class="font-mono text-[8px] text-slate-500 block">HECTARES (HA)</span>
           </div>
-
-          <!-- CO2 Equivalent -->
-          <div class="p-3 bg-void border-2 border-edgeDark relative">
-            <span class="font-mono text-[9px] text-slate-400 uppercase tracking-wider block font-bold">CO2 EQUIVALENT</span>
-            <div class="flex items-baseline justify-center gap-1 my-0.5">
-              <span id="statCO2e" class="font-display text-4xl text-flameCrimson font-black tracking-wider leading-none">122,065</span>
-            </div>
-            <span class="font-mono text-[9px] text-slate-400 uppercase">TONNES (tCO2e)</span>
+          <div class="p-2 bg-void border border-edgeDark">
+            <span class="font-mono text-[8px] text-slate-400 uppercase block font-bold">GHG EMISSIONS RELEASED</span>
+            <span id="statCO2e" class="font-display text-3xl text-flameCrimson font-black tracking-wider leading-none">0</span>
+            <span class="font-mono text-[8px] text-slate-500 block">TONNES CO2e (tCO2e)</span>
           </div>
         </div>
 
-        <!-- 3 Epistemic Regimes Table (Persona High-Contrast Brutalist) -->
-        <div class="border-2 border-edgeDark font-mono text-[10px]">
+        <!-- 3 Epistemic Confidence Regimes Count-Up Table -->
+        <div class="border border-edgeDark font-mono text-[10px]">
           <table class="w-full text-left">
-            <thead class="bg-obsidian text-slate-400 uppercase text-[9px] border-b-2 border-edgeDark">
+            <thead class="bg-obsidian text-slate-400 uppercase text-[8px] border-b border-edgeDark">
               <tr>
                 <th class="p-1.5 font-bold">CONFIDENCE REGIME</th>
-                <th class="p-1.5 text-right font-bold">CARBON (tC)</th>
-                <th class="p-1.5 text-right font-bold">CO2e (t)</th>
+                <th class="p-1.5 text-right font-bold">CARBON LOSS (tC)</th>
+                <th class="p-1.5 text-right font-bold">CO2e EMISSIONS (t)</th>
               </tr>
             </thead>
-            <tbody class="divide-y-2 divide-edgeDark bg-void text-starkWhite">
+            <tbody class="divide-y divide-edgeDark bg-void text-starkWhite">
               <tr>
-                <td class="p-1.5 font-bold text-bioEmerald flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 bg-bioEmerald"></span> CONSERVATIVE
-                </td>
-                <td id="regimeConsC" class="p-1.5 text-right font-bold">33,290.6</td>
-                <td id="regimeConsCO2" class="p-1.5 text-right font-bold text-bioEmerald">122,065.7</td>
+                <td class="p-1.5 font-bold text-bioEmerald">CONSERVATIVE (LOWER)</td>
+                <td id="regimeConsC" class="p-1.5 text-right font-bold">0.0</td>
+                <td id="regimeConsCO2" class="p-1.5 text-right font-bold text-bioEmerald">0.0</td>
               </tr>
-              <tr class="bg-carbon/50">
-                <td class="p-1.5 font-bold text-flameAmber flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 bg-flameAmber"></span> NOMINAL MEAN
-                </td>
-                <td id="regimeMeanC" class="p-1.5 text-right font-bold">33,290.6</td>
-                <td id="regimeMeanCO2" class="p-1.5 text-right font-bold text-flameAmber">122,065.7</td>
+              <tr class="bg-carbon/60">
+                <td class="p-1.5 font-bold text-flameAmber">NOMINAL MEAN</td>
+                <td id="regimeMeanC" class="p-1.5 text-right font-bold">0.0</td>
+                <td id="regimeMeanCO2" class="p-1.5 text-right font-bold text-flameAmber">0.0</td>
               </tr>
               <tr>
-                <td class="p-1.5 font-bold text-flameCrimson flex items-center gap-1">
-                  <span class="w-1.5 h-1.5 bg-flameCrimson"></span> UPPER 95% CI
-                </td>
-                <td id="regimeUpperC" class="p-1.5 text-right font-bold">33,290.6</td>
-                <td id="regimeUpperCO2" class="p-1.5 text-right font-bold text-flameCrimson">122,065.7</td>
+                <td class="p-1.5 font-bold text-flameCrimson">UPPER 95% CI BOUND</td>
+                <td id="regimeUpperC" class="p-1.5 text-right font-bold">0.0</td>
+                <td id="regimeUpperCO2" class="p-1.5 text-right font-bold text-flameCrimson">0.0</td>
               </tr>
             </tbody>
           </table>
         </div>
-      </div>
 
-      <!-- ================= UNCERTAINTY & CALIBRATION CARD ================= -->
-      <div class="p-4 bg-carbon border-2 border-edgeDark space-y-2.5 relative shadow-[5px_5px_0px_#040711]">
-        <div class="flex items-center justify-between pb-1 border-b-2 border-edgeDark">
-          <div class="skew-persona bg-laserCyan text-void font-display text-sm tracking-wider font-black px-2.5 py-0.5 shadow-[2px_2px_0px_#000]">
-            /// 02 BAYESIAN MC CALIBRATION
-          </div>
-          <span class="font-mono text-[9px] text-laserCyan tracking-tight">T=6 PASSES</span>
-        </div>
-
-        <div class="grid grid-cols-3 gap-2 font-mono text-center">
-          <div class="p-2 bg-void border border-edgeDark">
-            <span class="text-[8px] text-slate-400 block font-bold">ECE ERROR</span>
-            <span id="statECE" class="font-display text-lg text-laserCyan font-black">0.0124</span>
-          </div>
-          <div class="p-2 bg-void border border-edgeDark">
-            <span class="text-[8px] text-slate-400 block font-bold">BRIER SCORE</span>
-            <span id="statBrier" class="font-display text-lg text-flameAmber font-black">0.6612</span>
-          </div>
-          <div class="p-2 bg-void border border-edgeDark">
-            <span class="text-[8px] text-slate-400 block font-bold">AUSE CURVE</span>
-            <span id="statAUSE" class="font-display text-lg text-bioEmerald font-black">0.7334</span>
-          </div>
-        </div>
-        <p class="font-mono text-[9px] text-slate-400 leading-tight">
-          Evaluated inside the <span class="text-laserCyan font-bold">Smoke-FCER</span> mask (Aerosol &gt; 1.0 &cup; 31&times;31 dilation envelope).
-        </p>
-      </div>
-
-      <!-- ================= CAPTUM SPECTRAL IMPORTANCE CARD ================= -->
-      <div class="p-4 bg-carbon border-2 border-edgeDark space-y-2 relative shadow-[5px_5px_0px_#040711]">
-        <div class="flex items-center justify-between pb-1 border-b-2 border-edgeDark">
-          <div class="skew-persona bg-flameAmber text-void font-display text-sm tracking-wider font-black px-2.5 py-0.5 shadow-[2px_2px_0px_#000]">
-            /// 03 CAPTUM XAI ATTRIBUTION
-          </div>
-          <span class="font-mono text-[9px] text-slate-400">INTEGRATED GRADIENTS</span>
-        </div>
-        <div class="h-44 bg-void p-2 border border-edgeDark">
-          <canvas id="chartAttribution"></canvas>
-        </div>
-      </div>
-
-      <!-- ================= MULTI-SPECTRAL DIAGNOSTIC VISOR ================= -->
-      <div class="p-3 bg-carbon border-2 border-edgeDark space-y-2 relative shadow-[5px_5px_0px_#040711]">
-        <div class="flex items-center justify-between text-[10px] font-mono">
-          <span class="text-slate-300 font-bold uppercase tracking-wider">// 8-PANEL SATELLITE DIAGNOSTIC</span>
-          <span class="text-flameCrimson font-bold text-[9px]">INTERACTIVE</span>
-        </div>
-        <div class="relative group cursor-pointer border-2 border-edgeDark hover:border-laserCyan transition-colors overflow-hidden" onclick="window.open(document.getElementById('imgDiagnostic').src)">
-          <img id="imgDiagnostic" src="/outputs/kalimantan_2019_real_wildfire_test.png" alt="Diagnostic Preview" class="w-full object-cover">
-          <div class="absolute inset-0 bg-flameCrimson/20 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity font-display text-lg tracking-wider text-starkWhite">
-            <span>EXPAND DIAGNOSTIC FEED &gt;&gt;</span>
-          </div>
-        </div>
+        <!-- Expand Full High-Res 8-Panel Figure Link -->
+        <button id="btnExpandDiag" onclick="if(window.latestDiagUrl) window.open(window.latestDiagUrl)" class="w-full py-1 bg-void hover:bg-edgeDark text-laserCyan border border-edgeDark font-mono text-[9px] uppercase tracking-wider cursor-pointer transition-colors">
+          [EXPORT FULL 8-PANEL SCIENTIFIC REPORT PNG &gt;&gt;]
+        </button>
       </div>
 
     </div>
 
   </div>
 
-  <!-- ================= JAVASCRIPT APP LOGIC ================= -->
+  <!-- ================= JAVASCRIPT PROGRESSIVE SATELLITE FLOW ================= -->
   <script>
-    // Initialize Lucide Icons
     lucide.createIcons();
 
-    // 1. Initialize Leaflet Map with High-Contrast Sat & Dark Basemaps
+    // Curated International Hotspots
+    const GLOBAL_HOTSPOTS = [
+      { key: 'borneo', lat: -1.8430, lon: 113.9729, date: '2019-09-21', preDate: '2019-07-10', label: 'Borneo Peatland Megafire, Indonesia', short: '🔥 BORNEO PEATLAND' },
+      { key: 'maui', lat: 20.8783, lon: -156.6770, date: '2023-08-13', preDate: '2023-07-01', label: 'Lahaina Coastal Wildfire, Maui, USA', short: '🌴 LAHAINA, MAUI' },
+      { key: 'australia', lat: -33.6820, lon: 150.2850, date: '2020-01-10', preDate: '2019-10-15', label: 'Blue Mountains Megablaze, NSW, Australia', short: '🇦🇺 NSW AUSTRALIA' }
+    ];
+
+    window.currentHotspotKey = 'borneo';
+    window.currentPreFireDate = '2019-07-10';
+    window.currentPeakFireDate = '2019-09-21';
+    window.satelliteMode = 'natural';
+    window.currentSatUrl = null;
+    window.currentSatFCUrl = null;
+    window.currentSatBBox = null;
+    window.latestDiagUrl = null;
+    window.scanTimers = [];
+
+    // 1. Initialize Leaflet Map
     const map = L.map('map', {
-      center: [-1.8430, 113.9729], // Central Kalimantan default
+      center: [-1.8430, 113.9729],
       zoom: 12,
       zoomControl: false
     });
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Basemaps
     const esriSat = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
       attribution: 'Tiles &copy; Esri, Maxar, Earthstar Geographics',
       maxZoom: 18
-    });
+    }).addTo(map);
+
     const cartoDark = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       attribution: '&copy; CartoDB, OpenStreetMap',
       maxZoom: 19
@@ -538,42 +645,220 @@
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19
     });
-    esriSat.addTo(map);
 
-    // Layer Groups
     const satelliteTileGroup = L.layerGroup().addTo(map);
     const fireOverlayGroup = L.featureGroup().addTo(map);
     const patchGroup = L.layerGroup().addTo(map);
+    const scanBeamGroup = L.layerGroup().addTo(map);
+    const hotspotPinsGroup = L.layerGroup().addTo(map);
 
-    // Basemap & Overlay Switcher Control
-    const baseLayers = {
-      "🛰️ Esri Satellite Basemap": esriSat,
-      "🌑 Carto Dark Matter": cartoDark,
-      "🗺️ Street Map": osm
-    };
-    const overlayLayers = {
-      "🛰️ Sentinel-2 Satellite Tile (By Date)": satelliteTileGroup,
-      "🔥 Wildfire AI & Smoke Layers": fireOverlayGroup,
-      "🔲 10m Sentinel-2 Patch Grid": patchGroup
-    };
-    L.control.layers(baseLayers, overlayLayers, { position: 'topright' }).addTo(map);
+    L.control.layers(
+      { "🛰️ Esri Satellite": esriSat, "🌑 Carto Dark Matter": cartoDark, "🗺️ Street Map": osm },
+      { "🛰️ Sentinel-2 Multi-Spectral": satelliteTileGroup, "🔥 AI Wildfire Segmentation": fireOverlayGroup, "🔲 2.56km AOI Scan Reticle": patchGroup },
+      { position: 'topright' }
+    ).addTo(map);
 
-    // Satellite Imagery State & Render Helpers
-    window.satelliteMode = 'natural';
-    window.currentSatUrl = null;
-    window.currentSatFCUrl = null;
-    window.currentSatBBox = null;
+    // Add interactive pins for the 3 global hotspots
+    GLOBAL_HOTSPOTS.forEach(h => {
+      const circle = L.circleMarker([h.lat, h.lon], {
+        radius: 9,
+        color: '#FFFFFF',
+        weight: 2,
+        fillColor: '#FF1744',
+        fillOpacity: 0.9
+      }).addTo(hotspotPinsGroup);
+      circle.bindTooltip(`<b>${h.short}</b><br>Click to lock AOI pinpoint`, { direction: 'top' });
+      circle.on('click', (e) => {
+        L.DomEvent.stopPropagation(e);
+        selectHotspot(h.key, h.lat, h.lon, h.date, h.label);
+      });
+    });
+
+    let marker = L.marker([-1.8430, 113.9729], { draggable: true }).addTo(map);
+
+    function getAoiBounds(lat, lon) {
+      const delta = 0.0115; // 2.56km Sentinel-2 patch
+      return [[lat - delta, lon - delta], [lat + delta, lon + delta]];
+    }
+
+    function updatePatchPolygon(lat, lon) {
+      const bounds = getAoiBounds(lat, lon);
+      patchGroup.clearLayers();
+      L.rectangle(bounds, {
+        color: '#00E5FF',
+        weight: 2.5,
+        fillColor: '#00E5FF',
+        fillOpacity: 0.08,
+        dashArray: '8, 6'
+      }).addTo(patchGroup);
+      document.getElementById('locationCoords').innerText = `${lat.toFixed(4)}°, ${lon.toFixed(4)}° | ${document.getElementById('inputDate').value}`;
+    }
+
+    // Initialize XAI bars in standby state
+    const DEFAULT_XAI_CHANNELS = ['SWIR2', 'NBR', 'NDVI', 'WaterVap', 'NIR', 'Blue', 'Aerosol', 'SWIR1', 'RedEdge'];
+    function initXaiBarsStandby() {
+      const container = document.getElementById('xaiBarsContainer');
+      container.innerHTML = DEFAULT_XAI_CHANNELS.map((ch, idx) => `
+        <div class="flex items-center gap-2">
+          <span class="w-16 text-slate-400 font-bold truncate">${ch}</span>
+          <div class="flex-1 h-3 bg-void border border-edgeDark overflow-hidden relative">
+            <div id="xaiBar-${idx}" class="h-full bg-gradient-to-r from-laserCyan to-flameAmber xai-bar-fill" style="width: 0%"></div>
+          </div>
+          <span id="xaiVal-${idx}" class="w-11 text-right text-slate-500 font-bold">0.0%</span>
+        </div>
+      `).join('');
+    }
+
+    // Clear all running timers and reset the 8 panels to Standby when selecting a new pinpoint
+    function resetPanelsToStandby() {
+      window.scanTimers.forEach(t => clearTimeout(t));
+      window.scanTimers = [];
+      scanBeamGroup.clearLayers();
+      fireOverlayGroup.clearLayers();
+      satelliteTileGroup.clearLayers();
+      if (window.rasterMaskLayer) {
+        map.removeLayer(window.rasterMaskLayer);
+        window.rasterMaskLayer = null;
+      }
+
+      document.getElementById('scanProgressBar').style.width = '0%';
+      document.getElementById('statusText').innerText = 'STANDBY // PRESS ANALYZE TO SCAN AOI';
+      document.getElementById('statusIndicator').className = 'w-3 h-3 bg-laserCyan animate-ping border border-starkWhite';
+      document.getElementById('execTimer').innerText = 'STAGE 0/8';
+
+      for (let i = 1; i <= 6; i++) {
+        const img = document.getElementById(`imgPanel${i}`);
+        const laser = document.getElementById(`laserP${i}`);
+        const badge = document.getElementById(`badgeP${i}`);
+        const card = document.getElementById(`cardPanel${i}`);
+        const ph = document.getElementById(`placeholderP${i}`);
+        if (img) {
+          img.src = '';
+          if (i === 3) {
+            img.className = 'absolute inset-0 w-full h-full object-cover opacity-0 transition-opacity duration-500';
+          } else {
+            img.className = 'absolute inset-0 w-full h-full object-cover raster-wipe-hidden';
+          }
+        }
+        if (laser) laser.classList.add('hidden');
+        if (badge) { badge.innerText = 'STANDBY'; badge.className = 'font-mono text-[8px] text-slate-500'; }
+        if (card) card.className = 'bg-void border-2 border-edgeDark relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300';
+        if (ph) ph.classList.remove('hidden');
+      }
+
+      document.getElementById('svgPanel3').innerHTML = '';
+      document.getElementById('statECE').innerText = '0.0000';
+      document.getElementById('statBrier').innerText = '0.0000';
+      document.getElementById('statAUSE').innerText = '0.0000';
+
+      initXaiBarsStandby();
+      document.getElementById('cardPanel7').className = 'p-3 bg-carbon border-2 border-edgeDark space-y-2 relative transition-colors duration-300';
+      document.getElementById('badgeP7').innerText = 'STANDBY';
+
+      document.getElementById('cardPanel8').className = 'p-3 bg-carbon border-2 border-edgeDark space-y-2.5 relative transition-colors duration-300';
+      document.getElementById('badgeP8').innerText = 'STANDBY';
+      document.getElementById('statBurnedHa').innerText = '0.0';
+      document.getElementById('statCO2e').innerText = '0';
+      ['regimeConsC', 'regimeConsCO2', 'regimeMeanC', 'regimeMeanCO2', 'regimeUpperC', 'regimeUpperCO2'].forEach(id => {
+        document.getElementById(id).innerText = '0.0';
+      });
+
+      // Highlight Analyze CTA Button
+      const btn = document.getElementById('btnRun');
+      btn.classList.add('cta-ready-pulse');
+    }
+
+    // STEP 1: Select Hotspot Pinpoint -> Fly to Location & Wait for User to Press Analyze
+    function selectHotspot(key, lat, lon, date, label) {
+      window.currentHotspotKey = key;
+      const found = GLOBAL_HOTSPOTS.find(h => h.key === key);
+      if (found) {
+        window.currentPreFireDate = found.preDate;
+        window.currentPeakFireDate = found.date;
+      }
+
+      document.getElementById('inputLat').value = lat.toFixed(4);
+      document.getElementById('inputLon').value = lon.toFixed(4);
+      document.getElementById('inputDate').value = date;
+      document.getElementById('locationTitle').innerText = label;
+      document.getElementById('badgeTargetType').innerText = key.toUpperCase() + ' HOTSPOT';
+
+      // Update button active styles
+      ['borneo', 'maui', 'australia'].forEach(k => {
+        const topBtn = document.getElementById(`presetBtn-${k}`);
+        const cardBtn = document.getElementById(`cardBtn-${k}`);
+        if (k === key) {
+          if (topBtn) topBtn.className = "hotspot-btn skew-persona bg-flameCrimson text-starkWhite border-2 border-starkWhite px-3.5 py-1.5 transition-all duration-150 group shadow-[4px_4px_0px_#00E5FF] cursor-pointer";
+          if (cardBtn) cardBtn.className = "skew-persona bg-flameCrimson text-starkWhite border border-starkWhite py-1 px-1 text-center cursor-pointer tracking-wider";
+        } else {
+          if (topBtn) topBtn.className = "hotspot-btn skew-persona bg-carbon hover:bg-flameCrimson text-starkWhite border-2 border-edgeDark hover:border-starkWhite px-3.5 py-1.5 transition-all duration-150 group shadow-[3px_3px_0px_#000] hover:shadow-[4px_4px_0px_#00E5FF] cursor-pointer";
+          if (cardBtn) cardBtn.className = "skew-persona bg-void text-slate-300 border border-edgeDark hover:border-laserCyan py-1 px-1 text-center cursor-pointer tracking-wider";
+        }
+      });
+
+      resetPanelsToStandby();
+      marker.setLatLng([lat, lon]);
+      updatePatchPolygon(lat, lon);
+
+      // Smooth FlyTo Pinpoint
+      map.flyTo([lat, lon], 13, { duration: 1.35 });
+
+      // Update Mission Banner
+      document.getElementById('missionTitle').innerText = `TARGET LOCKED: ${label.toUpperCase()}`;
+      document.getElementById('missionSub').innerText = `Coordinates (${lat.toFixed(4)}°, ${lon.toFixed(4)}°) framed. Press [ANALYZE FIRE & CARBON >>] to start progressive scan!`;
+      document.getElementById('missionBanner').className = "absolute top-3 left-1/2 -translate-x-1/2 z-[400] skew-persona bg-obsidian/95 border-2 border-laserCyan px-5 py-2 shadow-[6px_6px_0px_#040711] flex items-center space-x-3 pointer-events-none";
+    }
+
+    // Custom Map Click / Drag -> Also follows the 2-step flow
+    map.on('click', function(e) {
+      const lat = parseFloat(e.latlng.lat.toFixed(4));
+      const lon = parseFloat(e.latlng.lng.toFixed(4));
+      document.getElementById('inputLat').value = lat;
+      document.getElementById('inputLon').value = lon;
+      marker.setLatLng(e.latlng);
+      resetPanelsToStandby();
+      updatePatchPolygon(lat, lon);
+      document.getElementById('locationTitle').innerText = `Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
+      document.getElementById('badgeTargetType').innerText = 'CUSTOM PIN';
+      document.getElementById('missionTitle').innerText = `CUSTOM PINPOINT LOCKED (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
+      document.getElementById('missionSub').innerText = `Press [ANALYZE FIRE & CARBON >>] to scan this 2.56km Sentinel-2 sector.`;
+    });
+
+    marker.on('dragend', function() {
+      const pos = marker.getLatLng();
+      const lat = parseFloat(pos.lat.toFixed(4));
+      const lon = parseFloat(pos.lng.toFixed(4));
+      document.getElementById('inputLat').value = lat;
+      document.getElementById('inputLon').value = lon;
+      resetPanelsToStandby();
+      updatePatchPolygon(lat, lon);
+      document.getElementById('locationTitle').innerText = `Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)`;
+      document.getElementById('badgeTargetType').innerText = 'CUSTOM PIN';
+    });
+
+    function setTemporalPhase(phase) {
+      if (phase === 'pre') {
+        document.getElementById('inputDate').value = window.currentPreFireDate || '2019-07-10';
+        document.getElementById('temporalBadge').innerText = 'PRE-FIRE BASE';
+        document.getElementById('temporalBadge').className = 'skew-persona bg-bioEmerald text-void font-display text-[11px] px-1.5 py-0.1 font-black';
+      } else {
+        document.getElementById('inputDate').value = window.currentPeakFireDate || '2019-09-21';
+        document.getElementById('temporalBadge').innerText = 'CRISIS WINDOW';
+        document.getElementById('temporalBadge').className = 'skew-persona bg-flameCrimson text-starkWhite font-display text-[11px] px-1.5 py-0.1 font-black';
+      }
+      runAnalysis();
+    }
 
     function setSatelliteMode(mode) {
       window.satelliteMode = mode;
       const btnNat = document.getElementById('btnSatNatural');
       const btnFc = document.getElementById('btnSatFalse');
       if (mode === 'natural') {
-        if (btnNat) btnNat.className = "skew-persona bg-bioEmerald text-void border border-starkWhite py-1 px-1 text-xs tracking-wider font-black text-center cursor-pointer shadow-[2px_2px_0px_#000]";
-        if (btnFc) btnFc.className = "skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-flameAmber py-1 px-1 text-xs tracking-wider text-center cursor-pointer shadow-[2px_2px_0px_#000]";
+        btnNat.className = "skew-persona bg-bioEmerald text-void border border-starkWhite py-0.5 px-1 text-[11px] tracking-wider font-black text-center cursor-pointer";
+        btnFc.className = "skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-flameAmber py-0.5 px-1 text-[11px] tracking-wider text-center cursor-pointer";
       } else {
-        if (btnFc) btnFc.className = "skew-persona bg-flameAmber text-void border border-starkWhite py-1 px-1 text-xs tracking-wider font-black text-center cursor-pointer shadow-[2px_2px_0px_#000]";
-        if (btnNat) btnNat.className = "skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-bioEmerald py-1 px-1 text-xs tracking-wider text-center cursor-pointer shadow-[2px_2px_0px_#000]";
+        btnFc.className = "skew-persona bg-flameAmber text-void border border-starkWhite py-0.5 px-1 text-[11px] tracking-wider font-black text-center cursor-pointer";
+        btnNat.className = "skew-persona bg-carbon text-slate-300 border border-edgeDark hover:border-bioEmerald py-0.5 px-1 text-[11px] tracking-wider text-center cursor-pointer";
       }
       renderSatelliteOverlay();
     }
@@ -583,163 +868,116 @@
       if (!window.currentSatBBox) return;
       const url = (window.satelliteMode === 'falsecolor' && window.currentSatFCUrl) ? window.currentSatFCUrl : window.currentSatUrl;
       if (url) {
-        const satLayer = L.imageOverlay(url + "?t=" + Date.now(), window.currentSatBBox, {
+        L.imageOverlay(url + "?t=" + Date.now(), window.currentSatBBox, {
           opacity: 0.95,
           interactive: false,
           zIndex: 5
+        }).addTo(satelliteTileGroup);
+      }
+    }
+
+    // Helper: Show animated laser scan beam over the AOI rectangle on the Leaflet Map
+    function startMapAoiLaserBeam(bounds) {
+      scanBeamGroup.clearLayers();
+      const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      svgEl.setAttribute('xmlns', "http://www.w3.org/2000/svg");
+      svgEl.setAttribute('viewBox', "0 0 256 256");
+      svgEl.innerHTML = `
+        <defs>
+          <linearGradient id="scanGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00E5FF" stop-opacity="0"/>
+            <stop offset="50%" stop-color="#00E5FF" stop-opacity="0.35"/>
+            <stop offset="100%" stop-color="#FF1744" stop-opacity="0.85"/>
+          </linearGradient>
+        </defs>
+        <rect x="0" y="0" width="256" height="256" fill="none" stroke="#00E5FF" stroke-width="4"/>
+        <g class="aoi-laser-line">
+          <rect x="0" y="-24" width="256" height="24" fill="url(#scanGrad)"/>
+          <line x1="0" y1="0" x2="256" y2="0" stroke="#00E5FF" stroke-width="4"/>
+        </g>
+      `;
+      L.svgOverlay(svgEl, bounds, { interactive: false, zIndex: 450 }).addTo(scanBeamGroup);
+    }
+
+    // Helper: Trigger scanline wipe reveal on one of Panels 1, 2, 4, 5, 6
+    function triggerPanelScanWipe(panelNum, imgUrl, borderClass, badgeText) {
+      const card = document.getElementById(`cardPanel${panelNum}`);
+      const img = document.getElementById(`imgPanel${panelNum}`);
+      const laser = document.getElementById(`laserP${panelNum}`);
+      const badge = document.getElementById(`badgeP${panelNum}`);
+      const ph = document.getElementById(`placeholderP${panelNum}`);
+
+      if (ph) ph.classList.add('hidden');
+      if (card) card.className = `bg-void border-2 ${borderClass} relative overflow-hidden aspect-square flex flex-col justify-between transition-colors duration-300 shadow-[0_0_12px_rgba(0,229,255,0.2)]`;
+      if (badge) {
+        badge.innerText = badgeText || 'LOCKED';
+        badge.className = 'font-mono text-[8px] text-laserCyan font-bold';
+      }
+      if (laser) {
+        laser.classList.remove('hidden');
+        laser.style.animation = 'none';
+        void laser.offsetWidth;
+        laser.style.animation = '';
+      }
+      if (img && imgUrl) {
+        img.src = imgUrl + "?t=" + Date.now();
+        img.className = 'absolute inset-0 w-full h-full object-cover raster-wipe-hidden';
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            img.className = 'absolute inset-0 w-full h-full object-cover raster-wipe-reveal';
+          });
         });
-        satelliteTileGroup.addLayer(satLayer);
       }
     }
 
-    // Marker & AOI Patch Box
-    let marker = L.marker([-1.8430, 113.9729], { draggable: true }).addTo(map);
-    let patchPolygon = null;
-
-    function updatePatchPolygon(lat, lon) {
-      const delta = 0.0115; // 256 pixels @ 10m = ~2.56 km box
-      const bounds = [[lat - delta, lon - delta], [lat + delta, lon + delta]];
-      patchGroup.clearLayers();
-      patchPolygon = L.rectangle(bounds, {
-        color: '#00E5FF',
-        weight: 2,
-        fillColor: '#00E5FF',
-        fillOpacity: 0.12,
-        dashArray: '6, 6'
-      });
-      patchGroup.addLayer(patchPolygon);
-      document.getElementById('locationCoords').innerText = `${lat.toFixed(4)}°, ${lon.toFixed(4)}° | ${document.getElementById('inputDate').value}`;
-    }
-    updatePatchPolygon(-1.8430, 113.9729);
-
-    // Map Click Listener
-    map.on('click', function(e) {
-      const lat = parseFloat(e.latlng.lat.toFixed(4));
-      const lon = parseFloat(e.latlng.lng.toFixed(4));
-      document.getElementById('inputLat').value = lat;
-      document.getElementById('inputLon').value = lon;
-      marker.setLatLng(e.latlng);
-      updatePatchPolygon(lat, lon);
-      
-      // Clear previous analysis overlays so there is NO detached ghost box
-      fireOverlayGroup.clearLayers();
-      satelliteTileGroup.clearLayers();
-      if (window.rasterMaskLayer) {
-        map.removeLayer(window.rasterMaskLayer);
-        window.rasterMaskLayer = null;
-      }
-      
-      document.getElementById('locationTitle').innerHTML = `
-        <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
-        <span class="truncate">Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)</span>
-      `;
-      document.getElementById('badgeTargetType').innerText = "CUSTOM COORD";
-      lucide.createIcons();
-    });
-
-    marker.on('dragend', function(e) {
-      const pos = marker.getLatLng();
-      const lat = parseFloat(pos.lat.toFixed(4));
-      const lon = parseFloat(pos.lng.toFixed(4));
-      document.getElementById('inputLat').value = lat;
-      document.getElementById('inputLon').value = lon;
-      updatePatchPolygon(lat, lon);
-      
-      // Clear previous analysis overlays so there is NO detached ghost box
-      fireOverlayGroup.clearLayers();
-      satelliteTileGroup.clearLayers();
-      if (window.rasterMaskLayer) {
-        map.removeLayer(window.rasterMaskLayer);
-        window.rasterMaskLayer = null;
-      }
-
-      document.getElementById('locationTitle').innerHTML = `
-        <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
-        <span class="truncate">Custom Target (${lat.toFixed(4)}°, ${lon.toFixed(4)}°)</span>
-      `;
-      document.getElementById('badgeTargetType').innerText = "CUSTOM COORD";
-      lucide.createIcons();
-    });
-
-    function loadPreset(lat, lon, date, label) {
-      document.getElementById('inputLat').value = lat;
-      document.getElementById('inputLon').value = lon;
-      document.getElementById('inputDate').value = date;
-      document.getElementById('locationTitle').innerHTML = `
-        <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
-        <span class="truncate">${label}</span>
-      `;
-      document.getElementById('badgeTargetType').innerText = "PRESET HOTSPOT";
-      lucide.createIcons();
-      map.setView([lat, lon], 12);
-      marker.setLatLng([lat, lon]);
-      updatePatchPolygon(lat, lon);
-      runAnalysis();
-    }
-
-    function setTemporalPhase(phase) {
-      if (phase === 'pre') {
-        document.getElementById('inputDate').value = window.currentPreFireDate || '2023-06-15';
-      } else {
-        document.getElementById('inputDate').value = window.currentPeakFireDate || '2023-09-30';
-      }
-      runAnalysis();
-    }
-
-    // 2. Initialize Captum Attribution Chart (Chart.js Persona High-Contrast Styling)
-    const ctx = document.getElementById('chartAttribution').getContext('2d');
-    const attrChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: ['SWIR2', 'NBR', 'NDVI', 'WaterVap', 'NIR', 'Blue', 'Aerosol', 'SWIR1', 'RedEdge'],
-        datasets: [{
-          data: [0.184, 0.162, 0.141, 0.119, 0.098, 0.082, 0.078, 0.071, 0.065],
-          backgroundColor: '#00E5FF',
-          borderColor: '#FFFFFF',
-          borderWidth: 1,
-          borderRadius: 0
-        }]
-      },
-      options: {
-        indexAxis: 'y',
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
-        scales: {
-          x: { 
-            grid: { color: '#1E2D4A' }, 
-            ticks: { color: '#94A3B8', font: { family: 'JetBrains Mono', size: 9 } } 
-          },
-          y: { 
-            grid: { display: false }, 
-            ticks: { color: '#FFFFFF', font: { family: 'Space Grotesk', weight: 'bold', size: 10 } } 
-          }
+    // Helper: Smooth count-up animation for numbers (Panel 8 & Calibration)
+    function animateNumber(elId, targetVal, durationMs, decimals = 1, useCommas = true) {
+      const el = document.getElementById(elId);
+      if (!el) return;
+      const startTime = performance.now();
+      function step(now) {
+        const progress = Math.min((now - startTime) / durationMs, 1);
+        const eased = 1 - Math.pow(1 - progress, 3); // cubic ease-out
+        const current = targetVal * eased;
+        if (decimals === 0) {
+          el.innerText = Math.round(current).toLocaleString('en-US');
+        } else {
+          const fixed = current.toFixed(decimals);
+          el.innerText = useCommas ? Number(fixed).toLocaleString('en-US', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }) : fixed;
+        }
+        if (progress < 1) {
+          requestAnimationFrame(step);
         }
       }
-    });
+      requestAnimationFrame(step);
+    }
 
-    // 3. API Execution Call
+    // STEP 2: Execute Progressive 8-Stage Scan & Reveal Choreography
     async function runAnalysis() {
       const lat = parseFloat(document.getElementById('inputLat').value);
       const lon = parseFloat(document.getElementById('inputLon').value);
       const date = document.getElementById('inputDate').value;
       const model = document.getElementById('selectModel').value;
 
+      resetPanelsToStandby();
+
       const btn = document.getElementById('btnRun');
       const statusText = document.getElementById('statusText');
       const statusInd = document.getElementById('statusIndicator');
       const timer = document.getElementById('execTimer');
-      const mapToast = document.getElementById('mapToast');
+      const progressBar = document.getElementById('scanProgressBar');
 
       btn.disabled = true;
-      btn.innerHTML = `<span class="animate-spin inline-block w-4 h-4 border-2 border-starkWhite border-t-transparent mr-2"></span> PROCESSING SATELLITE...`;
-      statusText.innerText = "ENGAGING AI & GFW AUDIT...";
-      statusInd.className = "w-3 h-3 bg-flameAmber animate-ping border border-starkWhite";
+      btn.classList.remove('cta-ready-pulse');
+      btn.innerHTML = `<span class="animate-spin inline-block w-4 h-4 border-2 border-starkWhite border-t-transparent mr-2"></span> SCANNING AOI SECTOR...`;
 
-      const startTime = Date.now();
-      const interval = setInterval(() => {
-        timer.innerText = ((Date.now() - startTime) / 1000).toFixed(1) + "s";
-      }, 100);
+      const aoiBounds = getAoiBounds(lat, lon);
+      map.flyToBounds(aoiBounds, { padding: [90, 90], duration: 0.7 });
+      startMapAoiLaserBeam(aoiBounds);
+
+      statusText.innerText = "ACQUIRING SENTINEL-2 L2A TELEMETRY...";
+      statusInd.className = "w-3 h-3 bg-flameAmber animate-ping border border-starkWhite";
+      progressBar.style.width = '10%';
 
       try {
         const response = await fetch('/api/analyze', {
@@ -749,183 +987,251 @@
         });
         const data = await response.json();
 
-        // Store temporal dates
-        window.currentPreFireDate = data.pre_fire_date || "2023-06-15";
-        window.currentPeakFireDate = data.peak_fire_date || "2023-09-30";
-
-        // Update Temporal Badge
-        const tBadge = document.getElementById('temporalBadge');
-        if (tBadge) {
-          if (data.temporal_status === 'active_fire') {
-            tBadge.className = "skew-persona bg-flameCrimson text-starkWhite font-display text-xs px-2.5 py-0.5 font-black shadow-[2px_2px_0px_#000]";
-            tBadge.innerText = "🔥 ACTIVE WILDFIRE CRISIS";
-          } else if (data.temporal_status === 'pre_fire') {
-            tBadge.className = "skew-persona bg-bioEmerald text-void font-display text-xs px-2.5 py-0.5 font-black shadow-[2px_2px_0px_#000]";
-            tBadge.innerText = "🟢 PRE-FIRE BASELINE";
-          } else {
-            tBadge.className = "skew-persona bg-laserCyan text-void font-display text-xs px-2.5 py-0.5 font-black shadow-[2px_2px_0px_#000]";
-            tBadge.innerText = "🌱 POST-FIRE RECOVERY";
-          }
-        }
-
-        // Update Location Title
-        if (data.location_title) {
-          document.getElementById('locationTitle').innerHTML = `
-            <i data-lucide="map-pin" class="w-4 h-4 text-flameCrimson shrink-0"></i>
-            <span class="truncate">${data.location_title}</span>
-          `;
-          lucide.createIcons();
-        }
-
-        // Update Carbon Stats
-        document.getElementById('statBurnedHa').innerText = data.carbon.nominal_mean.burned_area_ha.toFixed(1);
-        document.getElementById('statCO2e').innerText = data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString();
-
-        document.getElementById('regimeConsC').innerText = data.carbon.conservative_lower_bound.total_carbon_loss_tc.toLocaleString();
-        document.getElementById('regimeConsCO2').innerText = data.carbon.conservative_lower_bound.co2_equivalent_tonnes.toLocaleString();
-        document.getElementById('regimeMeanC').innerText = data.carbon.nominal_mean.total_carbon_loss_tc.toLocaleString();
-        document.getElementById('regimeMeanCO2').innerText = data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString();
-        document.getElementById('regimeUpperC').innerText = data.carbon.upper_bound_95ci.total_carbon_loss_tc.toLocaleString();
-        document.getElementById('regimeUpperCO2').innerText = data.carbon.upper_bound_95ci.co2_equivalent_tonnes.toLocaleString();
-
-        // Update Calibration Stats
-        document.getElementById('statECE').innerText = data.evaluation.ECE.toFixed(4);
-        document.getElementById('statBrier').innerText = data.evaluation.Brier_Score.toFixed(4);
-        document.getElementById('statAUSE').innerText = data.evaluation.AUSE.toFixed(4);
-
-        // Update Chart
-        if (data.attribution && data.attribution.top_channels) {
-          attrChart.data.labels = data.attribution.top_channels.labels;
-          attrChart.data.datasets[0].data = data.attribution.top_channels.values;
-          attrChart.update();
-        }
-
-        // Update Diagnostic Image
-        if (data.diagnostic_image_url) {
-          document.getElementById('imgDiagnostic').src = data.diagnostic_image_url + "?t=" + Date.now();
-        }
-
-        // Render Real Sentinel-2 Satellite Imagery on Map
+        window.currentPreFireDate = data.pre_fire_date || window.currentPreFireDate;
+        window.currentPeakFireDate = data.peak_fire_date || window.currentPeakFireDate;
         window.currentSatUrl = data.satellite_imagery_url;
         window.currentSatFCUrl = data.satellite_falsecolor_url;
-        window.currentSatBBox = data.bbox;
-        renderSatelliteOverlay();
+        window.currentSatBBox = data.bbox || aoiBounds;
+        window.latestDiagUrl = data.diagnostic_image_url;
 
-        // Update Satellite Imagery Badge Info
-        const satInfo = document.getElementById('satImageryInfo');
-        if (satInfo) {
-          if (data.temporal_status === 'pre_fire') {
-            satInfo.innerText = "🟢 S2 PRE-FIRE (UNBURNED)";
-            satInfo.className = "skew-persona bg-void px-1.5 py-0.5 text-bioEmerald border border-bioEmerald/60 font-bold text-[9px]";
-          } else if (data.temporal_status === 'active_fire') {
-            satInfo.innerText = "🔥 S2 ACTIVE FIRE (SMOKE/BURN)";
-            satInfo.className = "skew-persona bg-void px-1.5 py-0.5 text-flameCrimson border border-flameCrimson/60 font-bold text-[9px]";
-          } else {
-            satInfo.innerText = "🌱 S2 POST-FIRE";
-            satInfo.className = "skew-persona bg-void px-1.5 py-0.5 text-laserCyan border border-laserCyan/60 font-bold text-[9px]";
+        if (data.location_title) {
+          document.getElementById('locationTitle').innerText = data.location_title;
+        }
+
+        const schedule = (fn, delayMs) => {
+          const id = setTimeout(fn, delayMs);
+          window.scanTimers.push(id);
+        };
+
+        // ==================== STAGE 1 (t = 150ms): PANEL 01 FALSE COLOR SCAN ====================
+        schedule(() => {
+          timer.innerText = "STAGE 1/8";
+          progressBar.style.width = '16%';
+          statusText.innerText = "STAGE 1 // SCANNING SWIR-NIR FALSE COLOR...";
+          document.getElementById('missionTitle').innerText = "STAGE 1/8: SCANNING SWIR FALSE COLOR ANOMALY";
+          document.getElementById('missionSub').innerText = "Penetrating smoke aerosol layer via Sentinel-2 Band 12 (2190nm)...";
+          setSatelliteMode('falsecolor');
+          if (data.panels && data.panels.panel1_falsecolor) {
+            triggerPanelScanWipe(1, data.panels.panel1_falsecolor, 'border-flameAmber', 'SWIR LOCKED');
           }
-        }
+        }, 150);
 
-        // 4. Render Real GIS Wildfire & Smoke Layers on Leaflet Map
-        fireOverlayGroup.clearLayers();
-        if (window.rasterMaskLayer) {
-          map.removeLayer(window.rasterMaskLayer);
-          window.rasterMaskLayer = null;
-        }
+        // ==================== STAGE 2 (t = 900ms): PANEL 02 NATURAL COLOR SCAN ====================
+        schedule(() => {
+          timer.innerText = "STAGE 2/8";
+          progressBar.style.width = '28%';
+          statusText.innerText = "STAGE 2 // EXTRACTING TRUE COLOR RGB...";
+          document.getElementById('missionTitle').innerText = "STAGE 2/8: CAPTURING NATURAL RGB OPTICAL BANDS";
+          document.getElementById('missionSub').innerText = "Cross-referencing optical canopy reflectance & smoke plume density...";
+          setSatelliteMode('natural');
+          if (data.panels && data.panels.panel2_natural) {
+            triggerPanelScanWipe(2, data.panels.panel2_natural, 'border-bioEmerald', 'RGB LOCKED');
+          }
+        }, 900);
 
-        if (data.geojson && data.geojson.features && data.geojson.features.length > 0) {
-          const geojsonLayer = L.geoJSON(data.geojson, {
-            style: function(feature) {
-              const p = feature.properties || {};
-              if (p.class_id === 2) {
+        // ==================== STAGE 3 (t = 1650ms): PANEL 03 AI SEGMENTATION (SCAN -> OUTLINE TRACE -> FILL) ====================
+        schedule(() => {
+          timer.innerText = "STAGE 3/8";
+          progressBar.style.width = '44%';
+          statusText.innerText = "STAGE 3 // TRACING AI WILDFIRE PERIMETER & FILL...";
+          document.getElementById('missionTitle').innerText = "STAGE 3/8: AI SEGMENTATION — TRACING PERIMETER & FILLING BURN SCAR";
+          document.getElementById('missionSub').innerText = "SSL4EO Attention U-Net tracing active fire fronts and filling burn polygons...";
+
+          const card3 = document.getElementById('cardPanel3');
+          const ph3 = document.getElementById('placeholderP3');
+          const laser3 = document.getElementById('laserP3');
+          const badge3 = document.getElementById('badgeP3');
+          const img3 = document.getElementById('imgPanel3');
+          const svg3 = document.getElementById('svgPanel3');
+
+          if (ph3) ph3.classList.add('hidden');
+          card3.className = 'bg-void border-2 border-flameCrimson relative overflow-hidden aspect-square flex flex-col justify-between shadow-[0_0_16px_rgba(255,23,68,0.45)]';
+          badge3.innerText = 'TRACING...';
+          badge3.className = 'font-mono text-[8px] text-flameCrimson font-bold animate-pulse';
+
+          laser3.classList.remove('hidden');
+          laser3.style.animation = 'none';
+          void laser3.offsetWidth;
+          laser3.style.animation = '';
+
+          // Build SVG paths inside Panel 3 that trace their outline then fill interior
+          if (data.pixel_svg_paths && data.pixel_svg_paths.length > 0) {
+            svg3.innerHTML = data.pixel_svg_paths.map(item => {
+              const strokeCol = item.class_id === 2 ? '#FFFFFF' : '#FF9100';
+              const fillCol = item.class_id === 2 ? '#FF1744' : '#FF5722';
+              return `<path d="${item.d}" stroke="${strokeCol}" stroke-width="2.2" fill="${fillCol}" class="seg-trace-fill" />`;
+            }).join('');
+          }
+
+          // Fade in full 10m raster mask smoothly as fill completes
+          if (data.panels && data.panels.panel3_segmentation) {
+            img3.src = data.panels.panel3_segmentation + "?t=" + Date.now();
+            setTimeout(() => {
+              img3.className = 'absolute inset-0 w-full h-full object-cover opacity-90 transition-opacity duration-500';
+              badge3.innerText = data.has_fire ? 'FIRE MAPPED' : 'CLEAR';
+              badge3.className = 'font-mono text-[8px] text-starkWhite bg-flameCrimson px-1 font-bold';
+            }, 650);
+          }
+
+          // Simultaneously animate GeoJSON polygons on the Leaflet Map (Outline Trace -> Fill!)
+          fireOverlayGroup.clearLayers();
+          if (data.geojson && data.geojson.features && data.geojson.features.length > 0) {
+            const geojsonLayer = L.geoJSON(data.geojson, {
+              style: function(feature) {
+                const p = feature.properties || {};
+                const isFlame = p.class_id === 2;
                 return {
-                  color: p.stroke_color || '#FF1744',
-                  weight: 3.5,
-                  fillColor: p.fill_color || '#FF1744',
-                  fillOpacity: 0.90,
-                  className: 'pulse-fire'
+                  color: isFlame ? '#FFFFFF' : '#FF9100',
+                  weight: isFlame ? 3 : 2.2,
+                  fillColor: isFlame ? '#FF1744' : '#FF5722',
+                  fillOpacity: 0.78,
+                  className: 'seg-trace-fill'
                 };
-              } else if (p.class_id === 1) {
-                return {
-                  color: p.stroke_color || '#FF5722',
-                  weight: 2,
-                  fillColor: p.fill_color || '#FF5722',
-                  fillOpacity: 0.60
-                };
-              } else {
-                return {
-                  color: p.stroke_color || '#00E5FF',
-                  weight: 1.5,
-                  dashArray: '5, 5',
-                  fillColor: p.fill_color || '#00E5FF',
-                  fillOpacity: 0.20
-                };
+              },
+              onEachFeature: function(feature, layer) {
+                const p = feature.properties || {};
+                const icon = p.class_id === 2 ? '🔥' : '🪵';
+                layer.bindTooltip(`${icon} ${p.class_name || 'Wildfire Zone'} (${p.area_ha || '-'} ha)`, { sticky: true });
               }
-            },
-            onEachFeature: function(feature, layer) {
-              const p = feature.properties || {};
-              const title = p.class_name || 'Wildfire Feature';
-              const icon = p.class_id === 2 ? '🔥' : (p.class_id === 1 ? '🪵' : '💨');
-              
-              const popupHtml = `
-                <div class="p-2 space-y-1.5 font-mono text-xs">
-                  <div class="font-display text-base flex items-center gap-1.5 text-white border-b-2 border-edgeDark pb-1">
-                    <span>${icon}</span>
-                    <span class="tracking-wider">${title}</span>
-                  </div>
-                  <div class="text-[11px] text-slate-300">${p.description || ''}</div>
-                  <div class="grid grid-cols-2 gap-2 mt-2 pt-1 border-t border-edgeDark text-[10px]">
-                    <div><span class="text-slate-400">AREA:</span> <span class="font-bold text-flameAmber">${p.area_ha || '-'} ha</span></div>
-                    <div><span class="text-slate-400">CONF:</span> <span class="font-bold text-bioEmerald">${p.confidence || '95'}%</span></div>
-                    ${p.co2e_tonnes ? `<div><span class="text-slate-400">CO2e:</span> <span class="font-bold text-flameCrimson">${p.co2e_tonnes.toLocaleString()} t</span></div>` : ''}
-                  </div>
+            }).addTo(fireOverlayGroup);
+          }
+        }, 1650);
+
+        // ==================== STAGE 4 (t = 3050ms): PANEL 04 PREDICTIVE ENTROPY ====================
+        schedule(() => {
+          timer.innerText = "STAGE 4/8";
+          progressBar.style.width = '56%';
+          statusText.innerText = "STAGE 4 // COMPUTING PREDICTIVE ENTROPY...";
+          document.getElementById('missionTitle').innerText = "STAGE 4/8: SHANNON PREDICTIVE ENTROPY H[E[p]]";
+          if (data.panels && data.panels.panel4_entropy) {
+            triggerPanelScanWipe(4, data.panels.panel4_entropy, 'border-laserCyan', 'ENTROPY OK');
+          }
+        }, 3050);
+
+        // ==================== STAGE 5 (t = 3750ms): PANEL 05 EPISTEMIC MI & CALIBRATION ====================
+        schedule(() => {
+          timer.innerText = "STAGE 5/8";
+          progressBar.style.width = '68%';
+          statusText.innerText = "STAGE 5 // ISOLATING EPISTEMIC MODEL UNCERTAINTY...";
+          document.getElementById('missionTitle').innerText = "STAGE 5/8: BAYESIAN MONTE CARLO EPISTEMIC MI (T=6)";
+          document.getElementById('missionSub').innerText = "Evaluating Smoke-FCER uncertainty calibration (ECE, Brier, AUSE)...";
+          if (data.panels && data.panels.panel5_epistemic) {
+            triggerPanelScanWipe(5, data.panels.panel5_epistemic, 'border-laserCyan', 'MI CALIBRATED');
+          }
+          if (data.evaluation) {
+            animateNumber('statECE', data.evaluation.ECE, 700, 4, false);
+            animateNumber('statBrier', data.evaluation.Brier_Score, 700, 4, false);
+            animateNumber('statAUSE', data.evaluation.AUSE, 700, 4, false);
+          }
+        }, 3750);
+
+        // ==================== STAGE 6 (t = 4450ms): PANEL 06 NORMALIZED BURN RATIO (NBR) ====================
+        schedule(() => {
+          timer.innerText = "STAGE 6/8";
+          progressBar.style.width = '78%';
+          statusText.innerText = "STAGE 6 // MAPPING NORMALIZED BURN RATIO (NBR)...";
+          document.getElementById('missionTitle').innerText = "STAGE 6/8: NORMALIZED BURN RATIO (NBR) SEVERITY";
+          if (data.panels && data.panels.panel6_nbr) {
+            triggerPanelScanWipe(6, data.panels.panel6_nbr, 'border-flameOrange', 'NBR MAPPED');
+          }
+        }, 4450);
+
+        // ==================== STAGE 7 (t = 5150ms): PANEL 07 CAPTUM SPECTRAL XAI BAR ANIMATION ====================
+        schedule(() => {
+          timer.innerText = "STAGE 7/8";
+          progressBar.style.width = '88%';
+          statusText.innerText = "STAGE 7 // INTEGRATED GRADIENTS SPECTRAL XAI...";
+          document.getElementById('missionTitle').innerText = "STAGE 7/8: CAPTUM SPECTRAL ATTRIBUTION (BARS GROWING)";
+          document.getElementById('missionSub').innerText = "Ranking top Sentinel-2 spectral channels driving wildfire detection...";
+
+          const card7 = document.getElementById('cardPanel7');
+          card7.className = 'p-3 bg-carbon border-2 border-flameAmber space-y-2 relative transition-colors duration-300 shadow-[0_0_15px_rgba(255,145,0,0.25)]';
+          document.getElementById('badgeP7').innerText = 'XAI ACTIVE';
+          document.getElementById('badgeP7').className = 'font-mono text-[9px] text-flameAmber font-bold';
+
+          if (data.attribution && data.attribution.top_channels) {
+            const labels = data.attribution.top_channels.labels;
+            const values = data.attribution.top_channels.values;
+            const maxVal = Math.max(...values, 0.20);
+            const container = document.getElementById('xaiBarsContainer');
+
+            container.innerHTML = labels.map((lbl, idx) => `
+              <div class="flex items-center gap-2">
+                <span class="w-16 text-starkWhite font-bold truncate">${lbl}</span>
+                <div class="flex-1 h-3 bg-void border border-edgeDark overflow-hidden relative">
+                  <div id="xaiBar-${idx}" class="h-full bg-gradient-to-r from-laserCyan via-flameAmber to-flameCrimson xai-bar-fill" style="width: 0%"></div>
                 </div>
-              `;
-              layer.bindPopup(popupHtml, { className: 'custom-fire-popup' });
-              layer.bindTooltip(`${icon} ${title} (${p.area_ha || '-'} ha)`, { sticky: true });
-            }
-          });
+                <span id="xaiVal-${idx}" class="w-11 text-right text-laserCyan font-bold">0.0%</span>
+              </div>
+            `).join('');
 
-          fireOverlayGroup.addLayer(geojsonLayer);
+            // Animate each bar growing from left to right with staggered timing
+            values.forEach((v, idx) => {
+              const pctWidth = Math.min(100, Math.round((v / maxVal) * 100));
+              const pctText = (v * 100).toFixed(1) + '%';
+              setTimeout(() => {
+                const barEl = document.getElementById(`xaiBar-${idx}`);
+                const valEl = document.getElementById(`xaiVal-${idx}`);
+                if (barEl) barEl.style.width = pctWidth + '%';
+                if (valEl) valEl.innerText = pctText;
+              }, idx * 70 + 50);
+            });
+          }
+        }, 5150);
 
-          // Add High-Resolution 10m Raster Mask Overlay if available
-          if (data.mask_overlay_url && data.bbox) {
-            window.rasterMaskLayer = L.imageOverlay(data.mask_overlay_url + "?t=" + Date.now(), data.bbox, {
-              opacity: 0.85,
-              interactive: false
-            }).addTo(map);
+        // ==================== STAGE 8 (t = 6050ms): PANEL 08 GFW CARBON STOCK COUNT-UP ====================
+        schedule(() => {
+          timer.innerText = "STAGE 8/8";
+          progressBar.style.width = '100%';
+          statusText.innerText = "COMPLETE // ALL 8 TELEMETRY PANELS SYNCHRONIZED";
+          statusInd.className = "w-3 h-3 bg-bioEmerald border border-starkWhite";
+          scanBeamGroup.clearLayers(); // Stop laser sweep once scan completes
+
+          const card8 = document.getElementById('cardPanel8');
+          card8.className = 'p-3 bg-carbon border-2 border-flameCrimson space-y-2.5 relative transition-colors duration-300 shadow-[0_0_18px_rgba(255,23,68,0.3)]';
+          document.getElementById('badgeP8').innerText = 'AUDIT COMPLETE';
+          document.getElementById('badgeP8').className = 'font-mono text-[9px] text-starkWhite bg-flameCrimson px-1.5 py-0.5 font-bold';
+
+          const c = data.carbon;
+          animateNumber('statBurnedHa', c.nominal_mean.burned_area_ha, 1200, 1, true);
+          animateNumber('statCO2e', c.nominal_mean.co2_equivalent_tonnes, 1200, 0, true);
+
+          animateNumber('regimeConsC', c.conservative_lower_bound.total_carbon_loss_tc, 1200, 1, true);
+          animateNumber('regimeConsCO2', c.conservative_lower_bound.co2_equivalent_tonnes, 1200, 1, true);
+          animateNumber('regimeMeanC', c.nominal_mean.total_carbon_loss_tc, 1200, 1, true);
+          animateNumber('regimeMeanCO2', c.nominal_mean.co2_equivalent_tonnes, 1200, 1, true);
+          animateNumber('regimeUpperC', c.upper_bound_95ci.total_carbon_loss_tc, 1200, 1, true);
+          animateNumber('regimeUpperCO2', c.upper_bound_95ci.co2_equivalent_tonnes, 1200, 1, true);
+
+          if (data.has_fire) {
+            document.getElementById('missionTitle').innerText = `🔥 WILDFIRE AUDIT COMPLETE: ${c.nominal_mean.burned_area_ha.toFixed(1)} HA | ${Math.round(c.nominal_mean.co2_equivalent_tonnes).toLocaleString()} tCO2e`;
+            document.getElementById('missionSub').innerText = data.temporal_message || "Select another global hotspot pinpoint above or toggle Pre-Fire vs Peak-Fire.";
+            document.getElementById('missionBanner').className = "absolute top-3 left-1/2 -translate-x-1/2 z-[400] skew-persona bg-obsidian/95 border-2 border-flameCrimson px-5 py-2 shadow-[6px_6px_0px_#FF1744] flex items-center space-x-3 pointer-events-none";
+          } else {
+            document.getElementById('missionTitle').innerText = `🟢 ZERO FIRE ANOMALY (${data.observation_date})`;
+            document.getElementById('missionSub').innerText = data.temporal_message || "Unburned baseline verified (0.0 ha burned).";
+            document.getElementById('missionBanner').className = "absolute top-3 left-1/2 -translate-x-1/2 z-[400] skew-persona bg-obsidian/95 border-2 border-bioEmerald px-5 py-2 shadow-[6px_6px_0px_#00E676] flex items-center space-x-3 pointer-events-none";
           }
 
-          map.flyToBounds(geojsonLayer.getBounds(), { padding: [60, 60], duration: 1.2 });
+          btn.disabled = false;
+          btn.innerHTML = `
+            <div class="unskew-persona flex items-center gap-2 font-black">
+              <i data-lucide="scan-line" class="w-5 h-5"></i>
+              <span>RE-SCAN TARGET AOI &gt;&gt;</span>
+            </div>
+          `;
+          lucide.createIcons();
+        }, 6050);
 
-          // Show Toast Alert
-          document.getElementById('toastMain').innerText = `🔥 WILDFIRE DETECTED: ${data.carbon.nominal_mean.burned_area_ha.toFixed(1)} HA`;
-          document.getElementById('toastSub').innerText = data.temporal_message || `CO2e: ${data.carbon.nominal_mean.co2_equivalent_tonnes.toLocaleString()} tonnes | Model: ${data.model_architecture}`;
-          mapToast.className = "absolute top-4 right-16 z-[400] skew-persona bg-obsidian border-2 border-flameCrimson px-5 py-3 shadow-[6px_6px_0px_#FF1744] flex items-center space-x-4 transition-all";
-          mapToast.classList.remove('hidden');
-        } else {
-          // Zero fire detected (Safe / unburned coordinate / pre-fire baseline)
-          if (data.bbox) {
-            map.flyToBounds(data.bbox, { padding: [60, 60], duration: 1.0 });
-          }
-          document.getElementById('toastMain').innerText = data.temporal_message || `🟢 ZERO FIRE DETECTED (${data.observation_date})`;
-          document.getElementById('toastSub').innerText = `Vegetasi normal utuh (0.0 ha terbakar). Nihil anomali termal SWIR.`;
-          mapToast.className = "absolute top-4 right-16 z-[400] skew-persona bg-obsidian border-2 border-bioEmerald px-5 py-3 shadow-[6px_6px_0px_#00E676] flex items-center space-x-4 transition-all";
-          mapToast.classList.remove('hidden');
-        }
-
-        statusText.innerText = "TELEMETRY SYNCHRONIZED";
-        statusInd.className = "w-3 h-3 bg-bioEmerald border border-starkWhite";
       } catch (err) {
         console.error(err);
-        statusText.innerText = "INFERENCE OFFLINE";
+        scanBeamGroup.clearLayers();
+        statusText.innerText = "TELEMETRY ERROR";
         statusInd.className = "w-3 h-3 bg-flameCrimson border border-starkWhite";
-      } finally {
-        clearInterval(interval);
         btn.disabled = false;
         btn.innerHTML = `
           <div class="unskew-persona flex items-center gap-2 font-black">
-            <i data-lucide="flame" class="w-5 h-5"></i>
+            <i data-lucide="scan-line" class="w-5 h-5"></i>
             <span>ANALYZE FIRE &amp; CARBON &gt;&gt;</span>
           </div>
         `;
@@ -933,9 +1239,10 @@
       }
     }
 
-    // Trigger initial run for default location (Kalimantan) on page load
+    // On initial load: Lock onto Pinpoint 01 (Borneo Peatland) and wait for user to click Analyze!
     window.addEventListener('DOMContentLoaded', () => {
-      runAnalysis();
+      initXaiBarsStandby();
+      selectHotspot('borneo', -1.8430, 113.9729, '2019-09-21', 'Borneo Peatland Megafire, Indonesia');
     });
   </script>
 </body>
