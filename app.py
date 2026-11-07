@@ -21,6 +21,10 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from PIL import Image
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import matplotlib.colors
 import torch
 torch.backends.mkldnn.enabled = False
 
@@ -108,6 +112,141 @@ def generate_raster_mask_image(pred_mask: np.ndarray, out_path: Path) -> str:
 
     img = Image.fromarray(rgba, "RGBA")
     img.save(out_path, format="PNG")
+    return f"/outputs/{out_path.name}"
+
+
+def generate_dynamic_diagnostic_8panel(
+    s2_12bands: np.ndarray,
+    pred_mask: np.ndarray,
+    pred_entropy: np.ndarray,
+    epistemic_mi: np.ndarray,
+    nbr: np.ndarray,
+    channel_labels: List[str],
+    channel_shares: List[float],
+    carbon_report: Dict[str, Any],
+    location_title: str,
+    date_str: str,
+    out_path: Path,
+) -> str:
+    """Generate dynamic, real 8-panel multi-spectral & UQ diagnostic figure for any clicked target."""
+    fig, axes = plt.subplots(2, 4, figsize=(18, 9), facecolor="#080E1C")
+    fig.suptitle(
+        f"WATCHTOWER MULTI-SPECTRAL DIAGNOSTIC // {location_title.upper()} ({date_str})",
+        fontsize=14,
+        fontweight="bold",
+        color="#FFFFFF",
+        fontfamily="sans-serif",
+        y=0.98,
+    )
+
+    def stretch(band: np.ndarray, lo: float = 2.0, hi: float = 98.0) -> np.ndarray:
+        p_lo, p_hi = np.percentile(band, (lo, hi))
+        if p_hi <= p_lo:
+            p_hi = p_lo + 1.0
+        return np.clip((band - p_lo) / (p_hi - p_lo), 0, 1)
+
+    # 1. False Color (SWIR2 [B12], NIR [B8], Red [B4])
+    fc = np.stack([stretch(s2_12bands[11]), stretch(s2_12bands[7]), stretch(s2_12bands[3])], axis=-1)
+    axes[0, 0].imshow(fc)
+    axes[0, 0].set_title("1. False Color (SWIR-NIR-Red)", color="#00E5FF", fontsize=10, fontweight="bold")
+    axes[0, 0].axis("off")
+
+    # 2. Natural Color RGB
+    nat = np.stack([stretch(s2_12bands[3]), stretch(s2_12bands[2]), stretch(s2_12bands[1])], axis=-1)
+    axes[0, 1].imshow(nat)
+    axes[0, 1].set_title("2. Natural Color (TCI RGB)", color="#00E676", fontsize=10, fontweight="bold")
+    axes[0, 1].axis("off")
+
+    # 3. Predicted Segmentation Mask
+    cmap_mask = matplotlib.colors.ListedColormap(["#080E1C", "#FF5722", "#FF1744"])
+    axes[0, 2].imshow(pred_mask, cmap=cmap_mask, vmin=0, vmax=2)
+    burned_cnt = int((pred_mask > 0).sum())
+    axes[0, 2].set_title(f"3. AI Segmentation ({burned_cnt * 0.01:.1f} ha)", color="#FF5722", fontsize=10, fontweight="bold")
+    axes[0, 2].axis("off")
+
+    # 4. Total Predictive Entropy
+    im_ent = axes[0, 3].imshow(pred_entropy, cmap="inferno")
+    axes[0, 3].set_title("4. Predictive Entropy H[E[p]]", color="#FFC107", fontsize=10, fontweight="bold")
+    axes[0, 3].axis("off")
+    cb4 = plt.colorbar(im_ent, ax=axes[0, 3], fraction=0.046, pad=0.04)
+    cb4.ax.tick_params(colors="#FFFFFF", labelsize=7)
+
+    # 5. Epistemic Uncertainty (BALD MI)
+    im_mi = axes[1, 0].imshow(epistemic_mi, cmap="magma")
+    axes[1, 0].set_title("5. Epistemic MI (Model Uncertainty)", color="#00E5FF", fontsize=10, fontweight="bold")
+    axes[1, 0].axis("off")
+    cb5 = plt.colorbar(im_mi, ax=axes[1, 0], fraction=0.046, pad=0.04)
+    cb5.ax.tick_params(colors="#FFFFFF", labelsize=7)
+
+    # 6. Normalized Burn Ratio (NBR)
+    im_nbr = axes[1, 1].imshow(nbr, cmap="RdYlGn", vmin=-0.8, vmax=0.8)
+    axes[1, 1].set_title("6. Normalized Burn Ratio (NBR)", color="#FFFFFF", fontsize=10, fontweight="bold")
+    axes[1, 1].axis("off")
+    cb6 = plt.colorbar(im_nbr, ax=axes[1, 1], fraction=0.046, pad=0.04)
+    cb6.ax.tick_params(colors="#FFFFFF", labelsize=7)
+
+    # 7. Captum Feature Importance
+    axes[1, 2].set_facecolor("#10192E")
+    n_show = min(7, len(channel_labels))
+    y_pos = np.arange(n_show)
+    axes[1, 2].barh(y_pos, channel_shares[:n_show], color="#00E5FF", edgecolor="#FFFFFF", height=0.6)
+    axes[1, 2].set_yticks(y_pos)
+    axes[1, 2].set_yticklabels(channel_labels[:n_show], color="#FFFFFF", fontsize=8)
+    axes[1, 2].invert_yaxis()
+    axes[1, 2].set_xlabel("Attribution Share", color="#94A3B8", fontsize=8)
+    axes[1, 2].set_title("7. Captum Spectral XAI", color="#00E5FF", fontsize=10, fontweight="bold")
+    axes[1, 2].tick_params(colors="#FFFFFF", labelsize=7)
+    axes[1, 2].spines["bottom"].set_color("#1E2D4A")
+    axes[1, 2].spines["top"].set_color("none")
+    axes[1, 2].spines["right"].set_color("none")
+    axes[1, 2].spines["left"].set_color("#1E2D4A")
+
+    # 8. Carbon Accounting Table
+    axes[1, 3].axis("off")
+    table_data = [
+        ["Regime", "Burned (ha)", "Carbon (tC)", "CO2e (t)"],
+        [
+            "Conservative",
+            f"{carbon_report['conservative_lower_bound']['burned_area_ha']:.1f}",
+            f"{carbon_report['conservative_lower_bound']['total_carbon_loss_tc']:,.0f}",
+            f"{carbon_report['conservative_lower_bound']['co2_equivalent_tonnes']:,.0f}",
+        ],
+        [
+            "Nominal Mean",
+            f"{carbon_report['nominal_mean']['burned_area_ha']:.1f}",
+            f"{carbon_report['nominal_mean']['total_carbon_loss_tc']:,.0f}",
+            f"{carbon_report['nominal_mean']['co2_equivalent_tonnes']:,.0f}",
+        ],
+        [
+            "Upper 95% CI",
+            f"{carbon_report['upper_bound_95ci']['burned_area_ha']:.1f}",
+            f"{carbon_report['upper_bound_95ci']['total_carbon_loss_tc']:,.0f}",
+            f"{carbon_report['upper_bound_95ci']['co2_equivalent_tonnes']:,.0f}",
+        ],
+    ]
+    table = axes[1, 3].table(
+        cellText=table_data,
+        cellLoc="center",
+        loc="center",
+        colWidths=[0.30, 0.23, 0.24, 0.23],
+    )
+    table.auto_set_font_size(False)
+    table.set_fontsize(8)
+    table.scale(1.0, 1.8)
+    for (r_idx, c_idx), cell in table.get_celld().items():
+        cell.set_edgecolor("#1E2D4A")
+        if r_idx == 0:
+            cell.set_facecolor("#080E1C")
+            cell.set_text_props(color="#00E5FF", weight="bold")
+        else:
+            cell.set_facecolor("#10192E")
+            cell.set_text_props(color="#FFFFFF")
+
+    axes[1, 3].set_title("8. GFW Carbon Stock Audit", color="#FF1744", fontsize=10, fontweight="bold")
+
+    plt.subplots_adjust(top=0.91, bottom=0.08, left=0.04, right=0.96, hspace=0.25, wspace=0.20)
+    plt.savefig(out_path, dpi=100, facecolor=fig.get_facecolor(), edgecolor="none")
+    plt.close(fig)
     return f"/outputs/{out_path.name}"
 
 
@@ -414,6 +553,24 @@ async def analyze_wildfire(req: AnalysisRequest) -> Dict[str, Any]:
     else:
         delta = 0.0115
         bbox_wgs84 = [[lat - delta, lon - delta], [lat + delta, lon + delta]]
+
+    # 8. Dynamically render real 8-panel diagnostic figure for THIS exact target & date
+    pred_entropy_np = uq_out["predictive_entropy"][0].cpu().numpy()
+    epistemic_mi_np = uq_out["epistemic_mi"][0].cpu().numpy()
+    diag_file_path = outputs_dir / f"dynamic_diag_{abs(hash((lat, lon, req_date_str))) % 10000}.png"
+    diagnostic_img = generate_dynamic_diagnostic_8panel(
+        s2_12bands=s2_12bands,
+        pred_mask=pred_mask,
+        pred_entropy=pred_entropy_np,
+        epistemic_mi=epistemic_mi_np,
+        nbr=nbr,
+        channel_labels=top_labels,
+        channel_shares=top_vals,
+        carbon_report=carbon_report,
+        location_title=location_title,
+        date_str=observation_date,
+        out_path=diag_file_path,
+    )
 
     return {
         "status": "success",
