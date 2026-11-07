@@ -8,34 +8,34 @@
     </linearGradient>
 
     <radialGradient id="fireGlow" cx="20%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#FF3D00" stop-opacity="0.3"/>
+      <stop offset="0%" stop-color="#FF3D00" stop-opacity="0.25"/>
       <stop offset="100%" stop-color="#FF3D00" stop-opacity="0"/>
     </radialGradient>
 
     <radialGradient id="cyanGlow" cx="80%" cy="30%" r="60%">
-      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.2"/>
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.18"/>
       <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
     </radialGradient>
 
-    <linearGradient id="fireGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+    <linearGradient id="flameFacet" x1="0%" y1="100%" x2="50%" y2="0%">
       <stop offset="0%" stop-color="#FF1744"/>
-      <stop offset="50%" stop-color="#FF5252"/>
-      <stop offset="100%" stop-color="#FFD600"/>
+      <stop offset="50%" stop-color="#FF5722"/>
+      <stop offset="100%" stop-color="#FFC107"/>
     </linearGradient>
 
-    <linearGradient id="forestGrad" x1="0%" y1="100%" x2="0%" y2="0%">
-      <stop offset="0%" stop-color="#00B0FF"/>
-      <stop offset="40%" stop-color="#00E676"/>
-      <stop offset="100%" stop-color="#69F0AE"/>
+    <linearGradient id="cyanFacet" x1="100%" y1="100%" x2="50%" y2="0%">
+      <stop offset="0%" stop-color="#00E676"/>
+      <stop offset="40%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#38BDF8"/>
     </linearGradient>
 
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#FFFFFF"/>
-      <stop offset="100%" stop-color="#CBD5E1"/>
+      <stop offset="100%" stop-color="#E2E8F0"/>
     </linearGradient>
     
     <filter id="glow">
-      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feGaussianBlur stdDeviation="6" result="blur" />
       <feMerge>
         <feMergeNode in="blur" />
         <feMergeNode in="SourceGraphic" />
@@ -49,73 +49,75 @@
   <rect width="1200" height="420" fill="url(#cyanGlow)"/>
 
   <!-- High-tech Grid Lines -->
-  <g opacity="0.12" stroke="#00E5FF" stroke-width="1">
+  <g opacity="0.10" stroke="#00E5FF" stroke-width="1">
     <line x1="0" y1="70" x2="1200" y2="70"/>
     <line x1="0" y1="140" x2="1200" y2="140"/>
     <line x1="0" y1="210" x2="1200" y2="210"/>
     <line x1="0" y1="280" x2="1200" y2="280"/>
     <line x1="0" y1="350" x2="1200" y2="350"/>
     
-    <line x1="200" y1="0" x2="200" y2="420"/>
-    <line x1="400" y1="0" x2="400" y2="420"/>
-    <line x1="600" y1="0" x2="600" y2="420"/>
-    <line x1="800" y1="0" x2="800" y2="420"/>
-    <line x1="1000" y1="0" x2="1000" y2="420"/>
+    <line x1="150" y1="0" x2="150" y2="420"/>
+    <line x1="380" y1="0" x2="380" y2="420"/>
+    <line x1="650" y1="0" x2="650" y2="420"/>
+    <line x1="920" y1="0" x2="920" y2="420"/>
   </g>
 
-  <!-- Left: Watchtower Emblem Icon -->
-  <g transform="translate(40, -45) scale(0.95)">
-    <!-- Geospatial Radar & Rings -->
-    <g opacity="0.25">
-      <circle cx="256" cy="256" r="190" fill="none" stroke="#00E5FF" stroke-width="1.5" stroke-dasharray="8 8"/>
-      <circle cx="256" cy="256" r="140" fill="none" stroke="#00E5FF" stroke-width="1"/>
-      <circle cx="256" cy="256" r="90" fill="none" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 4"/>
-      <line x1="256" y1="46" x2="256" y2="466" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 6"/>
-      <line x1="46" y1="256" x2="466" y2="256" stroke="#00E5FF" stroke-width="1" stroke-dasharray="4 6"/>
-    </g>
+  <!-- Left: Sleek Geometric "W" Watchtower Monogram Icon -->
+  <g transform="translate(60, 45) scale(0.72)">
+    <!-- Radar Aura Rings -->
+    <circle cx="256" cy="230" r="180" fill="none" stroke="#00E5FF" stroke-width="1" stroke-dasharray="6 8" opacity="0.3"/>
+    <circle cx="256" cy="230" r="130" fill="none" stroke="#00E5FF" stroke-width="1" opacity="0.2"/>
 
-    <!-- Uncertainty Wave Arcs -->
-    <g opacity="0.45" filter="url(#glow)">
-      <path d="M 130 220 A 140 140 0 0 1 382 220" fill="none" stroke="#00E5FF" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M 160 180 A 110 110 0 0 1 352 180" fill="none" stroke="#00E676" stroke-width="2" stroke-dasharray="6 6"/>
-    </g>
+    <!-- Outer Wing Left (Emerald / Telemetry) -->
+    <polygon points="80,160 144,160 216,350 160,350" fill="#00E5FF" opacity="0.85" filter="url(#glow)"/>
 
-    <!-- Emblem Shield -->
-    <path d="M 256 100 L 160 200 C 160 300, 200 365, 256 405 L 256 100 Z" fill="url(#forestGrad)" opacity="0.9" />
-    <path d="M 256 100 L 352 200 C 352 300, 312 365, 256 405 L 256 100 Z" fill="url(#fireGrad)" filter="url(#glow)" />
+    <!-- Inner Left Blade (Dual Spectrum Cyan -> Emerald) -->
+    <polygon points="172,160 228,160 256,310 216,350" fill="url(#cyanFacet)" filter="url(#glow)"/>
 
-    <!-- Center Sensor Eye -->
-    <polygon points="256,125 238,170 274,170" fill="#FFFFFF" filter="url(#glow)"/>
-    <circle cx="256" cy="265" r="34" fill="#070B19" stroke="#00E5FF" stroke-width="3.5" filter="url(#glow)"/>
-    <circle cx="256" cy="265" r="20" fill="none" stroke="#FF5252" stroke-width="2" stroke-dasharray="5 3"/>
-    <circle cx="256" cy="265" r="8" fill="#FFD600"/>
+    <!-- Center Watchtower Apex Spire -->
+    <polygon points="256,80 238,155 274,155" fill="#FFFFFF" filter="url(#glow)"/>
+    <polygon points="256,165 240,250 272,250" fill="#E2E8F0" opacity="0.9"/>
+    <polygon points="256,260 246,380 266,380" fill="#00E5FF" filter="url(#glow)"/>
+
+    <!-- Inner Right Blade (Thermal Infrared / SWIR Flame) -->
+    <polygon points="340,160 284,160 256,310 296,350" fill="url(#flameFacet)" filter="url(#glow)"/>
+
+    <!-- Outer Wing Right (Active Flame Emitter) -->
+    <polygon points="432,160 368,160 296,350 352,350" fill="#FF5722" opacity="0.85" filter="url(#glow)"/>
+
+    <!-- Focal Radar Pulse Ring -->
+    <circle cx="256" cy="80" r="16" fill="none" stroke="#00E5FF" stroke-width="2.5" opacity="0.6"/>
+    <circle cx="256" cy="80" r="5" fill="#FFFFFF" filter="url(#glow)"/>
   </g>
 
-  <!-- Right: Project Title & Branding -->
-  <g transform="translate(480, 70)">
+  <!-- Right: Project Title & Backronym Tagline -->
+  <g transform="translate(450, 65)">
     <!-- Pill Tag -->
-    <rect width="260" height="28" rx="14" fill="#132342" stroke="#00E5FF" stroke-width="1.2" opacity="0.9"/>
+    <rect width="280" height="28" rx="14" fill="#132342" stroke="#00E5FF" stroke-width="1.2" opacity="0.9"/>
     <circle cx="16" cy="14" r="5" fill="#00E676" filter="url(#glow)"/>
     <text x="30" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#00E5FF" letter-spacing="2">GEOSPATIAL DEEP LEARNING</text>
 
     <!-- Main Title -->
-    <text x="0" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="54" font-weight="900" fill="url(#textGrad)" letter-spacing="4">WATCHTOWER</text>
+    <text x="0" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="900" fill="url(#textGrad)" letter-spacing="4">WATCHTOWER</text>
     
-    <!-- Subtitle -->
-    <text x="0" y="125" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="18" font-weight="600" fill="#38BDF8" letter-spacing="1">
-      Uncertainty-Aware Wildfire Segmentation &amp; Carbon Accounting
+    <!-- Full Backronym Tagline -->
+    <text x="0" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#38BDF8" letter-spacing="0.5">
+      Wildfire Attention &amp; Transformer Calibration with
+    </text>
+    <text x="0" y="146" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#38BDF8" letter-spacing="0.5">
+      Hybrid Tversky Optimization for Woodland Emission Reporting
     </text>
 
     <!-- Description -->
-    <text x="0" y="160" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400" fill="#94A3B8" width="650">
-      Deep learning pipeline isolating Bayesian uncertainty under smoke obscuration,
+    <text x="0" y="180" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#94A3B8">
+      Sentinel-2 &amp; S5P multispectral intelligence with Bayesian BALD uncertainty quantification,
     </text>
-    <text x="0" y="182" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="14" font-weight="400" fill="#94A3B8">
-      mapping active flame fronts with Sentinel-2, and quantifying GFW CO2e emissions.
+    <text x="0" y="200" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="13" font-weight="400" fill="#94A3B8">
+      smoke-obscured active flame front segmentation, and Global Forest Watch CO2e accounting.
     </text>
 
     <!-- Badges / Pill Tags Row -->
-    <g transform="translate(0, 215)">
+    <g transform="translate(0, 225)">
       <!-- Badge 1: 17-Channel S2+S5P -->
       <rect x="0" y="0" width="145" height="32" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
       <text x="14" y="20" font-family="sans-serif" font-size="12" font-weight="600" fill="#E2E8F0">🛰️ 17 Channels</text>
@@ -129,7 +131,7 @@
       <text x="314" y="20" font-family="sans-serif" font-size="12" font-weight="600" fill="#F43F5E">🔥 ResNet-50 &amp; ViT</text>
 
       <!-- Badge 4: GFW Carbon -->
-      <rect x="475" y="0" width="150" height="32" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
+      <rect x="475" y="0" width="155" height="32" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
       <text x="489" y="20" font-family="sans-serif" font-size="12" font-weight="600" fill="#4ADE80">🌲 GFW Carbon</text>
     </g>
   </g>
@@ -141,4 +143,3 @@
   <circle cx="12" cy="408" r="3" fill="#00E5FF" opacity="0.6"/>
   <circle cx="1188" cy="408" r="3" fill="#00E5FF" opacity="0.6"/>
 </svg>
-

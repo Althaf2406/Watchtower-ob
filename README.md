@@ -9,7 +9,7 @@
   <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"/></a>
 </p>
 
-# Watchtower: Uncertainty-Aware Wildfire Segmentation & Carbon Accounting Pipeline
+# WATCHTOWER: Wildfire Attention & Transformer Calibration with Hybrid Tversky Optimization for Woodland Emission Reporting
 
 An end-to-end geospatial deep learning system for high-resolution semantic segmentation of active flame fronts and burn scars, isolated Bayesian uncertainty quantification under heavy smoke obscuration, and uncertainty-propagated greenhouse gas ($\text{CO}_2\text{e}$) accounting via Global Forest Watch (GFW).
 
