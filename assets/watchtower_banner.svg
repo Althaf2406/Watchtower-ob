@@ -7,40 +7,69 @@
       <stop offset="100%" stop-color="#050811"/>
     </linearGradient>
 
-    <radialGradient id="fireGlow" cx="20%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#FF3D00" stop-opacity="0.25"/>
-      <stop offset="100%" stop-color="#FF3D00" stop-opacity="0"/>
+    <radialGradient id="fireGlow" cx="18%" cy="50%" r="45%">
+      <stop offset="0%" stop-color="#FF5722" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#FF5722" stop-opacity="0"/>
     </radialGradient>
 
-    <radialGradient id="cyanGlow" cx="80%" cy="30%" r="60%">
-      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.18"/>
+    <radialGradient id="cyanGlow" cx="80%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#00E5FF" stop-opacity="0.16"/>
       <stop offset="100%" stop-color="#00E5FF" stop-opacity="0"/>
     </radialGradient>
 
-    <linearGradient id="flameFacet" x1="0%" y1="100%" x2="50%" y2="0%">
-      <stop offset="0%" stop-color="#FF1744"/>
-      <stop offset="50%" stop-color="#FF5722"/>
-      <stop offset="100%" stop-color="#FFC107"/>
+    <!-- Official Watchtower Logo Gradients (Left: Orange-Red, Right: Cyan-Green) -->
+    <linearGradient id="leftOuter1" x1="0%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#FF3300"/>
+      <stop offset="55%" stop-color="#FF5722"/>
+      <stop offset="100%" stop-color="#E65100"/>
     </linearGradient>
 
-    <linearGradient id="cyanFacet" x1="100%" y1="100%" x2="50%" y2="0%">
-      <stop offset="0%" stop-color="#00E676"/>
-      <stop offset="40%" stop-color="#00E5FF"/>
-      <stop offset="100%" stop-color="#38BDF8"/>
+    <linearGradient id="leftOuter2" x1="0%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%" stop-color="#FF5722"/>
+      <stop offset="50%" stop-color="#FF8F00"/>
+      <stop offset="100%" stop-color="#FFB300"/>
+    </linearGradient>
+
+    <linearGradient id="leftInner1" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFB300"/>
+      <stop offset="50%" stop-color="#FF6D00"/>
+      <stop offset="100%" stop-color="#FF2A00"/>
+    </linearGradient>
+
+    <linearGradient id="leftInner2" x1="100%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFCA28"/>
+      <stop offset="45%" stop-color="#FF8F00"/>
+      <stop offset="100%" stop-color="#FF3D00"/>
+    </linearGradient>
+
+    <linearGradient id="rightInner2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="55%" stop-color="#00D4B2"/>
+      <stop offset="100%" stop-color="#00B87C"/>
+    </linearGradient>
+
+    <linearGradient id="rightInner1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#40F2FF"/>
+      <stop offset="50%" stop-color="#00E5FF"/>
+      <stop offset="100%" stop-color="#00C896"/>
+    </linearGradient>
+
+    <linearGradient id="rightOuter2" x1="100%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF"/>
+      <stop offset="55%" stop-color="#00D68F"/>
+      <stop offset="100%" stop-color="#00C853"/>
+    </linearGradient>
+
+    <linearGradient id="rightOuter1" x1="100%" y1="0%" x2="30%" y2="100%">
+      <stop offset="0%" stop-color="#00BFA5"/>
+      <stop offset="55%" stop-color="#00C875"/>
+      <stop offset="100%" stop-color="#00B248"/>
     </linearGradient>
 
     <linearGradient id="textGrad" x1="0%" y1="0%" x2="100%" y2="0%">
       <stop offset="0%" stop-color="#FFFFFF"/>
       <stop offset="100%" stop-color="#E2E8F0"/>
     </linearGradient>
-    
-    <filter id="glow">
-      <feGaussianBlur stdDeviation="6" result="blur" />
-      <feMerge>
-        <feMergeNode in="blur" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
   </defs>
 
   <!-- Canvas Background -->
@@ -49,57 +78,59 @@
   <rect width="1200" height="420" fill="url(#cyanGlow)"/>
 
   <!-- High-tech Grid Lines -->
-  <g opacity="0.10" stroke="#00E5FF" stroke-width="1">
+  <g opacity="0.09" stroke="#00E5FF" stroke-width="1">
     <line x1="0" y1="70" x2="1200" y2="70"/>
     <line x1="0" y1="140" x2="1200" y2="140"/>
     <line x1="0" y1="210" x2="1200" y2="210"/>
     <line x1="0" y1="280" x2="1200" y2="280"/>
     <line x1="0" y1="350" x2="1200" y2="350"/>
-    
     <line x1="150" y1="0" x2="150" y2="420"/>
     <line x1="380" y1="0" x2="380" y2="420"/>
     <line x1="650" y1="0" x2="650" y2="420"/>
     <line x1="920" y1="0" x2="920" y2="420"/>
   </g>
 
-  <!-- Left: Sleek Geometric "W" Watchtower Monogram Icon -->
-  <g transform="translate(60, 45) scale(0.72)">
-    <!-- Radar Aura Rings -->
-    <circle cx="256" cy="230" r="180" fill="none" stroke="#00E5FF" stroke-width="1" stroke-dasharray="6 8" opacity="0.3"/>
-    <circle cx="256" cy="230" r="130" fill="none" stroke="#00E5FF" stroke-width="1" opacity="0.2"/>
+  <!-- Left: Official Watchtower Rounded App Icon Card with Faceted Origami "W" -->
+  <g transform="translate(68, 48) scale(0.63)">
+    <!-- Outer Orbital Radar Ring -->
+    <circle cx="256" cy="256" r="285" fill="none" stroke="#00E5FF" stroke-width="1.2" opacity="0.22"/>
+    <!-- Rounded App Icon Container -->
+    <rect x="16" y="16" width="480" height="480" rx="104" fill="#060B16" stroke="#00E5FF" stroke-width="2.5" stroke-opacity="0.75"/>
 
-    <!-- Outer Wing Left (Emerald / Telemetry) -->
-    <polygon points="80,160 144,160 216,350 160,350" fill="#00E5FF" opacity="0.85" filter="url(#glow)"/>
+    <!-- Official Faceted Origami "W" Emblem -->
+    <g transform="translate(0, 8)">
+      <!-- Left Half Under-Fold -->
+      <polygon points="176,376 252,224 252,302 228,376" fill="#162844"/>
+      <polygon points="176,376 212,298 228,376" fill="#0E1B30"/>
+      <!-- Left Half Outer Down-Stroke -->
+      <polygon points="96,136 130,136 191,331 176,376" fill="url(#leftOuter1)"/>
+      <polygon points="130,136 162,136 206,286 191,331" fill="url(#leftOuter2)"/>
+      <!-- Left Half Inner Up-Stroke -->
+      <polygon points="176,376 224,150 238,143 196,336" fill="url(#leftInner1)"/>
+      <polygon points="196,336 238,143 252,136 252,224 176,376" fill="url(#leftInner2)"/>
 
-    <!-- Inner Left Blade (Dual Spectrum Cyan -> Emerald) -->
-    <polygon points="172,160 228,160 256,310 216,350" fill="url(#cyanFacet)" filter="url(#glow)"/>
-
-    <!-- Center Watchtower Apex Spire -->
-    <polygon points="256,80 238,155 274,155" fill="#FFFFFF" filter="url(#glow)"/>
-    <polygon points="256,165 240,250 272,250" fill="#E2E8F0" opacity="0.9"/>
-    <polygon points="256,260 246,380 266,380" fill="#00E5FF" filter="url(#glow)"/>
-
-    <!-- Inner Right Blade (Thermal Infrared / SWIR Flame) -->
-    <polygon points="340,160 284,160 256,310 296,350" fill="url(#flameFacet)" filter="url(#glow)"/>
-
-    <!-- Outer Wing Right (Active Flame Emitter) -->
-    <polygon points="432,160 368,160 296,350 352,350" fill="#FF5722" opacity="0.85" filter="url(#glow)"/>
-
-    <!-- Focal Radar Pulse Ring -->
-    <circle cx="256" cy="80" r="16" fill="none" stroke="#00E5FF" stroke-width="2.5" opacity="0.6"/>
-    <circle cx="256" cy="80" r="5" fill="#FFFFFF" filter="url(#glow)"/>
+      <!-- Right Half Under-Fold -->
+      <polygon points="336,376 260,224 260,302 284,376" fill="#162844"/>
+      <polygon points="336,376 300,298 284,376" fill="#0E1B30"/>
+      <!-- Right Half Outer Up-Stroke -->
+      <polygon points="306,286 350,136 382,136 321,331" fill="url(#rightOuter2)"/>
+      <polygon points="321,331 382,136 416,136 336,376" fill="url(#rightOuter1)"/>
+      <!-- Right Half Inner Down-Stroke -->
+      <polygon points="336,376 260,224 260,136 274,143 316,336" fill="url(#rightInner2)"/>
+      <polygon points="336,376 316,336 274,143 288,150" fill="url(#rightInner1)"/>
+    </g>
   </g>
 
   <!-- Right: Project Title & Backronym Tagline -->
-  <g transform="translate(450, 65)">
+  <g transform="translate(445, 65)">
     <!-- Pill Tag -->
-    <rect width="280" height="28" rx="14" fill="#132342" stroke="#00E5FF" stroke-width="1.2" opacity="0.9"/>
-    <circle cx="16" cy="14" r="5" fill="#00E676" filter="url(#glow)"/>
-    <text x="30" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#00E5FF" letter-spacing="2">GEOSPATIAL DEEP LEARNING</text>
+    <rect width="310" height="28" rx="14" fill="#0F2042" stroke="#00E5FF" stroke-width="1.2" opacity="0.95"/>
+    <circle cx="16" cy="14" r="5" fill="#00E676"/>
+    <text x="30" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#00E5FF" letter-spacing="1.8">GEOSPATIAL DEEP LEARNING  •  SATELLITE AI</text>
 
     <!-- Main Title -->
     <text x="0" y="85" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="52" font-weight="900" fill="url(#textGrad)" letter-spacing="4">WATCHTOWER</text>
-    
+
     <!-- Full Backronym Tagline -->
     <text x="0" y="122" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#38BDF8" letter-spacing="0.5">
       Wildfire Attention &amp; Transformer Calibration with
@@ -118,28 +149,24 @@
 
     <!-- Badges / Pill Tags Row -->
     <g transform="translate(0, 225)">
-      <!-- Badge 1: 17-Channel S2+S5P -->
       <rect x="0" y="0" width="145" height="32" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
       <text x="14" y="20" font-family="sans-serif" font-size="12" font-weight="600" fill="#E2E8F0">🛰️ 17 Channels</text>
 
-      <!-- Badge 2: Bayesian UQ -->
-      <rect x="155" y="0" width="135" height="32" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
+      <rect x="155" y="0" width="135" height="32" rx="8" fill="#0F172A" stroke="#0284C7" stroke-width="1.2"/>
       <text x="169" y="20" font-family="sans-serif" font-size="12" font-weight="600" fill="#38BDF8">📊 BALD UQ</text>
 
-      <!-- Badge 3: Attention U-Net & ViT -->
-      <rect x="300" y="0" width="165" height="32" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
+      <rect x="300" y="0" width="165" height="32" rx="8" fill="#0F172A" stroke="#E11D48" stroke-width="1.2"/>
       <text x="314" y="20" font-family="sans-serif" font-size="12" font-weight="600" fill="#F43F5E">🔥 ResNet-50 &amp; ViT</text>
 
-      <!-- Badge 4: GFW Carbon -->
-      <rect x="475" y="0" width="155" height="32" rx="8" fill="#0F172A" stroke="#334155" stroke-width="1.2"/>
+      <rect x="475" y="0" width="155" height="32" rx="8" fill="#0F172A" stroke="#16A34A" stroke-width="1.2"/>
       <text x="489" y="20" font-family="sans-serif" font-size="12" font-weight="600" fill="#4ADE80">🌲 GFW Carbon</text>
     </g>
   </g>
 
-  <!-- Outer Tech Border Frame -->
-  <rect x="1" y="1" width="1198" height="418" rx="8" fill="none" stroke="#1E293B" stroke-width="2"/>
-  <circle cx="12" cy="12" r="3" fill="#00E5FF" opacity="0.6"/>
-  <circle cx="1188" cy="12" r="3" fill="#00E5FF" opacity="0.6"/>
-  <circle cx="12" cy="408" r="3" fill="#00E5FF" opacity="0.6"/>
-  <circle cx="1188" cy="408" r="3" fill="#00E5FF" opacity="0.6"/>
+  <!-- Outer Tech Border Frame with Corner Ticks -->
+  <rect x="12" y="12" width="1176" height="396" rx="12" fill="none" stroke="#1E293B" stroke-width="2"/>
+  <path d="M 12 36 L 12 12 L 36 12" fill="none" stroke="#00E5FF" stroke-width="2"/>
+  <path d="M 1164 12 L 1188 12 L 1188 36" fill="none" stroke="#00E5FF" stroke-width="2"/>
+  <path d="M 12 384 L 12 408 L 36 408" fill="none" stroke="#00E5FF" stroke-width="2"/>
+  <path d="M 1164 408 L 1188 408 L 1188 384" fill="none" stroke="#00E5FF" stroke-width="2"/>
 </svg>

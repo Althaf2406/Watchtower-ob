@@ -1,5 +1,6 @@
 .venv/
 __pycache__/
+.pytest_cache/
 *.py[cod]
 *$py.class
 logs/
@@ -7,4 +8,11 @@ data/
 *.pt
 *.pth
 *.ckpt
+outputs/tile_cache/
+outputs/run_*.png
+outputs/dynamic_diag_*.png
+outputs/current_segmentation_mask.png
+outputs/custom_sat_*.png
+outputs/mg_*
+
 
