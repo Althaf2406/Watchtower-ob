@@ -6,14 +6,19 @@ Predictive Entropy, Epistemic MI, NBR), Panel 07 (Captum Spectral XAI), and Pane
 are 100% identical to the live browser UI.
 """
 
+import asyncio
 import io
 import json
 import math
 import os
+import subprocess
 import urllib.request
+import wave
 from pathlib import Path
 
+import edge_tts
 import imageio
+import imageio_ffmpeg
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
 
@@ -571,16 +576,70 @@ def render_ui_frame(
     return np.array(canvas.convert("RGB"))
 
 
-def generate_video():
-    video_final_path = OUTPUTS_DIR / "watchtower_hackathon_demo.mp4"
+def build_tactical_sfx_wav(duration_sec: float = 12.4, sr: int = 24000) -> np.ndarray:
+    """Synthesize clean Atlus/Persona-inspired tactical UI clicks, laser scan sweeps, and counter ticks."""
+    n_samples = int(duration_sec * sr)
+    audio = np.zeros(n_samples, dtype=np.float32)
 
-    print("[1/3] Fetching Esri satellite basemap & exact /api/analyze Borneo telemetry...")
+    def add_tone(t_start: float, dur: float, f0: float, f1: float | None = None, amp: float = 0.15):
+        i0 = int(t_start * sr)
+        length = int(dur * sr)
+        if i0 >= n_samples or length <= 0:
+            return
+        i1 = min(n_samples, i0 + length)
+        actual_len = i1 - i0
+        t = np.linspace(0, actual_len / sr, actual_len, endpoint=False)
+        if f1 is None:
+            phase = 2 * np.pi * f0 * t
+        else:
+            freqs = np.linspace(f0, f1, actual_len)
+            phase = 2 * np.pi * np.cumsum(freqs) / sr
+        env = np.exp(-3.5 * t / max(dur, 0.01)) * np.sin(np.pi * t / max(dur, 0.01)) ** 0.3
+        audio[i0:i1] += (np.sin(phase) * env * amp).astype(np.float32)
+
+    # 1. Pinpoint Click (t = 1.1s)
+    add_tone(1.10, 0.09, 980, 1480, amp=0.22)
+    # 2. Analyze Button Click & Engage (t = 2.3s)
+    add_tone(2.30, 0.12, 520, 1040, amp=0.26)
+    add_tone(2.38, 0.16, 1040, 1560, amp=0.22)
+    # 3. Stage 1 & 2 Laser Scan Sweeps (t = 2.4s, 3.25s)
+    add_tone(2.42, 0.75, 340, 880, amp=0.10)
+    add_tone(3.27, 0.75, 380, 960, amp=0.10)
+    # 4. Stage 3 AI Segmentation Outline Trace Ticks (t = 4.1s .. 5.5s)
+    for k in range(14):
+        add_tone(4.12 + k * 0.09, 0.04, 1200 + k * 45, amp=0.11)
+    # 5. Stages 4, 5, 6 Unlock Chimes (t = 5.6s, 6.35s, 7.1s)
+    add_tone(5.60, 0.25, 740, 1100, amp=0.14)
+    add_tone(6.35, 0.25, 880, 1320, amp=0.14)
+    add_tone(7.10, 0.25, 990, 1480, amp=0.14)
+    # 6. Stage 7 Captum XAI Bars Rising Cascade (t = 7.85s .. 8.85s)
+    for k in range(9):
+        add_tone(7.85 + k * 0.09, 0.08, 600 + k * 90, amp=0.12)
+    # 7. Stage 8 GFW Carbon Counter Rapid Ticks + Completion Chord (t = 8.95s .. 10.25s)
+    for k in range(16):
+        add_tone(8.95 + k * 0.07, 0.035, 1400 + (k % 3) * 120, amp=0.10)
+    # Completion Triad at t = 10.15s
+    add_tone(10.15, 0.65, 523.25, amp=0.14)  # C5
+    add_tone(10.15, 0.65, 659.25, amp=0.14)  # E5
+    add_tone(10.15, 0.65, 783.99, amp=0.14)  # G5
+    add_tone(10.15, 0.75, 1046.50, amp=0.14) # C6
+
+    return np.clip(audio, -0.95, 0.95)
+
+
+def generate_video():
+    video_raw_path = OUTPUTS_DIR / "watchtower_demo_raw.mp4"
+    video_final_path = OUTPUTS_DIR / "watchtower_hackathon_demo.mp4"
+    vo_mp3_path = OUTPUTS_DIR / "watchtower_vo_short.mp3"
+    sfx_wav_path = OUTPUTS_DIR / "watchtower_sfx.wav"
+
+    print("[1/4] Fetching Esri satellite basemap & exact /api/analyze Borneo telemetry...")
     basemap = fetch_esri_basemap(-1.8430, 113.9729, zoom=13)
     telemetry = fetch_real_borneo_telemetry()
 
-    print("[2/3] Rendering real-speed (1x, 30fps) Borneo demo video (~12.5 seconds)...")
+    print("[2/4] Rendering real-speed (1x, 30fps) Borneo demo video (~12.4 seconds)...")
     writer = imageio.get_writer(
-        str(video_final_path),
+        str(video_raw_path),
         fps=FPS,
         codec="libx264",
         quality=8,
@@ -625,7 +684,7 @@ def generate_video():
     record_segment(1.2, 0.0, 0.0, False, (1295, 30), True)
     record_segment(1.2, 0.0, 0.0, False, analyze_btn_xy, True)
 
-    # 2. Real-speed Progressive 8-Stage Scan (matching templates/index.html ~6.5s scan + 2.5s hold)
+    # 2. Real-speed Progressive 8-Stage Scan (matching templates/index.html ~6.5s scan + 2.2s hold)
     record_segment(0.85, 0.0, 1.0, True, (1440, 250), False)   # Stage 1: False Color
     record_segment(0.85, 1.0, 2.0, True, (1620, 250), False)   # Stage 2: Natural RGB
     record_segment(1.50, 2.0, 3.5, True, (1790, 250), False)   # Stage 3: AI Segmentation (Outline Trace -> Fill)
@@ -637,7 +696,52 @@ def generate_video():
     record_segment(2.20, 8.2, 8.2, False, (690, 520), False)   # Hold completed state for 2.2s
 
     writer.close()
-    print(f"[3/3] Saved crisp real-speed Borneo demo video to: {video_final_path} ({video_final_path.stat().st_size / (1024*1024):.2f} MB)")
+
+    print("[3/4] Synthesizing 12.4s Voiceover + Tactical UI Sound Effects...")
+    async def make_short_vo():
+        text = (
+            "Locking onto the Borneo Peatland Megafire. "
+            "Pressing Analyze triggers our eight-stage Sentinel-2 scan: "
+            "mapping False Color, Natural RGB, AI burn segmentation, Bayesian uncertainty, NBR, "
+            "Captum spectral XAI, and auditing eighty-nine thousand tonnes of CO2 emissions."
+        )
+        comm = edge_tts.Communicate(text, voice="en-US-ChristopherNeural", rate="+28%")
+        await comm.save(str(vo_mp3_path))
+
+    asyncio.run(make_short_vo())
+
+    sfx_samples = build_tactical_sfx_wav(duration_sec=12.4, sr=24000)
+    with wave.open(str(sfx_wav_path), "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(24000)
+        wf.writeframes((sfx_samples * 32767).astype(np.int16).tobytes())
+
+    print("[4/4] Mixing Voiceover + Tactical SFX into final 12.4s MP4...")
+    ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
+    cmd = [
+        ffmpeg_exe,
+        "-y",
+        "-i", str(video_raw_path),
+        "-i", str(vo_mp3_path),
+        "-i", str(sfx_wav_path),
+        "-filter_complex", "[1:a]volume=1.3[vo];[2:a]volume=0.45[sfx];[vo][sfx]amix=inputs=2:duration=longest:dropout_transition=1[aout]",
+        "-map", "0:v:0",
+        "-map", "[aout]",
+        "-c:v", "copy",
+        "-c:a", "aac",
+        "-b:a", "192k",
+        "-shortest",
+        str(video_final_path),
+    ]
+    subprocess.run(cmd, check=True)
+
+    # Cleanup temp audio/raw files
+    for p in (video_raw_path, vo_mp3_path, sfx_wav_path):
+        if p.is_file():
+            p.unlink()
+
+    print(f"[SUCCESS] Saved crisp 12.4s Borneo demo video WITH AUDIO to: {video_final_path} ({video_final_path.stat().st_size / (1024*1024):.2f} MB)")
 
 
 if __name__ == "__main__":
