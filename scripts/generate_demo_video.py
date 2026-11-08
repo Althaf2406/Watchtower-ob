@@ -725,7 +725,7 @@ def generate_video():
         "-i", str(video_raw_path),
         "-i", str(vo_mp3_path),
         "-i", str(sfx_wav_path),
-        "-filter_complex", "[1:a]volume=1.3[vo];[2:a]volume=0.45[sfx];[vo][sfx]amix=inputs=2:duration=longest:dropout_transition=1[aout]",
+        "-filter_complex", "[1:a]atempo=1.32,volume=1.3[vo];[2:a]volume=0.45[sfx];[vo][sfx]amix=inputs=2:duration=shortest:dropout_transition=1[aout]",
         "-map", "0:v:0",
         "-map", "[aout]",
         "-c:v", "copy",
