@@ -671,7 +671,7 @@ def generate_video():
     video_final_path = OUTPUTS_DIR / "watchtower_hackathon_demo.mp4"
     audio_path = OUTPUTS_DIR / "watchtower_narration.mp3"
 
-    print("[1/4] Preparing satellite basemaps & benchmark datasets for Borneo, Maui, and NSW...")
+    print("[1/4] Preparing satellite basemap & benchmark dataset for Borneo Peatland...")
     hotspots_meta = {
         "borneo": {
             "scene_key": "kalimantan_2019",
@@ -682,33 +682,34 @@ def generate_video():
             "title": "Borneo Peatland Megafire, Indonesia",
             "btn_xy": (1295, 30),
         },
-        "maui": {
-            "scene_key": "maui_2023",
-            "lat": 20.8783,
-            "lon": -156.6770,
-            "date": "2023-08-13",
-            "pre_date": "2023-06-20",
-            "title": "Lahaina Coastal Wildfire, Maui, USA",
-            "btn_xy": (1520, 30),
-        },
-        "australia": {
-            "scene_key": "australia_2020",
-            "lat": -33.6820,
-            "lon": 150.2850,
-            "date": "2020-01-10",
-            "pre_date": "2019-08-15",
-            "title": "Blue Mountains Megablaze, NSW, Australia",
-            "btn_xy": (1735, 30),
-        },
     }
 
-    basemaps = {}
-    datasets = {}
-    for k, m in hotspots_meta.items():
-        basemaps[k] = fetch_esri_basemap(m["lat"], m["lon"], zoom=13)
-        datasets[k] = load_hotspot_data(m["scene_key"])
+    basemaps = {"borneo": fetch_esri_basemap(-1.8430, 113.9729, zoom=13)}
+    datasets = {"borneo": load_hotspot_data("kalimantan_2019")}
 
-    print("[2/4] Rendering 1920x1080 @ 24fps progressive 8-panel video frames...")
+    print("[2/4] Generating synchronized Borneo-only AI narration track...")
+    async def make_audio():
+        import edge_tts
+        text = (
+            "Welcome to Watchtower: an AI-driven satellite wildfire and carbon intelligence platform. "
+            "In Step One, we select our target pinpoint: the 2019 Borneo Peatland Megafire in Indonesia, "
+            "locking a two-point-five-six kilometer Sentinel-2 scan box while all eight telemetry panels wait on standby. "
+            "In Step Two, pressing Analyze Fire and Carbon triggers our progressive eight-stage satellite scan. "
+            "First, Short-Wave Infrared False Color penetrates dense peatland smoke, followed by True Color optical RGB. "
+            "In Stage Three, our Attention U-Net model traces the active fire perimeter outline and fills the burn scar footprint in real time. "
+            "Next, Stages Four and Five quantify Bayesian Monte Carlo predictive entropy and epistemic model uncertainty inside the smoke plume, "
+            "while Stage Six maps the Normalized Burn Ratio. "
+            "In Stage Seven, Captum Integrated Gradients animates the top spectral channels driving the prediction. "
+            "Finally, Stage Eight executes an IPCC Tier-3 Global Forest Watch carbon audit, counting up to two hundred forty-five point five hectares burned "
+            "and over one hundred twenty-two thousand tonnes of CO2 emissions. "
+            "Watchtower: uncertainty-calibrated wildfire and carbon intelligence from orbit."
+        )
+        comm = edge_tts.Communicate(text, voice="en-US-ChristopherNeural", rate="+8%")
+        await comm.save(str(audio_path))
+
+    asyncio.run(make_audio())
+
+    print("[3/4] Rendering 1920x1080 @ 24fps progressive 8-panel Borneo video frames...")
     writer = imageio.get_writer(
         str(video_raw_path),
         fps=FPS,
@@ -722,7 +723,7 @@ def generate_video():
     for f in create_title_card_frames(
         title="WATCHTOWER // SATELLITE WILDFIRE AI",
         subtitle="SSL4EO ATTENTION U-NET & ViT-S/16 • BAYESIAN UQ • CAPTUM XAI • GFW CARBON AUDIT",
-        footer="2-STEP GLOBAL PINPOINT LOCK & PROGRESSIVE 8-PANEL SATELLITE TELEMETRY",
+        footer="BORNEO PEATLAND MEGAFIRE SHOWCASE • PROGRESSIVE 8-PANEL SATELLITE TELEMETRY",
         duration_sec=3.5,
         bg_image_path=showcase_img,
     ):
@@ -730,7 +731,6 @@ def generate_video():
 
     cursor_xy = [960, 520]
     analyze_btn_xy = (176, 464)
-    pre_fire_btn_xy = (100, 257)
 
     def record_segment(
         active_key: str,
@@ -773,107 +773,79 @@ def generate_video():
             )
             writer.append_data(frame)
 
-    # --- SCENE 1: Pinpoint 01 (Borneo Peatland) Standby -> Click Analyze ---
+    # --- SCENE 1: Step 1 Pinpoint Selection (Borneo Peatland Standby) ---
     record_segment(
-        "borneo", 3.0, 0.0, 0.0, False, False, hotspots_meta["borneo"]["btn_xy"], False,
+        "borneo", 4.5, 0.0, 0.0, False, False, hotspots_meta["borneo"]["btn_xy"], True,
         "STEP 01 // PINPOINT",
         "01 // BORNEO PEATLAND MEGAFIRE (1.8430°S, 113.9729°E) — AOI RETICLE LOCKED",
-        "8-Panel Telemetry Matrix stands in STANDBY awaiting operator command",
+        "Camera locks onto 2.56km Sentinel-2 AOI box • All 8 Telemetry Panels stand by awaiting scan",
     )
     record_segment(
-        "borneo", 1.4, 0.0, 0.0, False, False, analyze_btn_xy, True,
+        "borneo", 3.0, 0.0, 0.0, False, False, analyze_btn_xy, True,
         "STEP 02 // EXECUTE",
-        "PRESSING [ANALYZE FIRE & CARBON >>] TO START 8-STAGE SATELLITE SCAN",
-        "Initiating multi-spectral band extraction, Bayesian MC passes (T=6), and GFW Carbon Audit...",
+        "PRESSING [ANALYZE FIRE & CARBON >>] TO START PROGRESSIVE 8-STAGE SCAN",
+        "Initiating Sentinel-2 12-band extraction, Bayesian MC passes (T=6), and GFW Carbon Audit...",
     )
 
-    # --- SCENE 2: Borneo Progressive 8-Stage Scan ---
+    # --- SCENE 2: Borneo Progressive 8-Stage Scan (Detailed Pacing) ---
+    # Stage 1: False Color (SWIR-NIR-Red)
     record_segment(
-        "borneo", 2.0, 0.0, 2.0, True, False, (1520, 230), False,
-        "STAGES 01–02 // SCAN",
-        "SCANNING PANEL 01 (SWIR FALSE COLOR) & PANEL 02 (NATURAL RGB)",
-        "Laser scanline sweeps 2.56km AOI • SWIR Band 12 penetrates dense peatland smoke plumes",
+        "borneo", 3.2, 0.0, 1.0, True, False, (1440, 230), False,
+        "STAGE 01 // FALSE COLOR",
+        "STAGE 1/8: SCANNING SHORT-WAVE INFRARED (SWIR-NIR-RED) FALSE COLOR",
+        "Laser scanline sweeps AOI patch • SWIR Band 12 (2190nm) penetrates dense peatland smoke plumes",
     )
+    # Stage 2: Natural RGB
     record_segment(
-        "borneo", 2.2, 2.0, 3.5, True, False, (1790, 230), False,
-        "STAGE 03 // AI MASK",
-        "AI SEGMENTATION: PERIMETER OUTLINE TRACING & BURN SCAR FILL",
-        "SSL4EO Attention U-Net traces active fire fronts and fills polygon interiors on map & Panel 03",
+        "borneo", 3.0, 1.0, 2.0, True, False, (1620, 230), False,
+        "STAGE 02 // NATURAL RGB",
+        "STAGE 2/8: EXTRACTING TRUE COLOR OPTICAL RGB REFLECTANCE",
+        "Cross-referencing visible canopy reflectance and optical smoke aerosol density",
     )
+    # Stage 3: AI Segmentation (Outline Trace -> Fill)
     record_segment(
-        "borneo", 2.2, 3.5, 5.9, True, False, (1650, 420), False,
-        "STAGES 04–06 // UQ & NBR",
-        "BAYESIAN UNCERTAINTY (PREDICTIVE ENTROPY & EPISTEMIC MI) + NBR INDEX",
-        "Calibrated inside Smoke-FCER envelope: ECE = 0.0124 • Brier = 0.6612 • AUSE = 0.7334",
+        "borneo", 5.2, 2.0, 3.5, True, False, (1790, 230), False,
+        "STAGE 03 // AI SEGMENTATION",
+        "STAGE 3/8: AI PERIMETER OUTLINE TRACING & BURN SCAR INTERIOR FILL",
+        "SSL4EO Attention U-Net traces active fire fronts and progressively fills burn scar polygons",
     )
+    # Stage 4: Predictive Entropy
     record_segment(
-        "borneo", 1.8, 5.9, 7.0, True, False, (1650, 680), False,
+        "borneo", 2.8, 3.5, 4.3, True, False, (1440, 420), False,
+        "STAGE 04 // PRED. ENTROPY",
+        "STAGE 4/8: COMPUTING SHANNON PREDICTIVE ENTROPY H[E[p]]",
+        "Quantifying total pixel-wise predictive uncertainty across active flame boundaries",
+    )
+    # Stage 5: Epistemic MI & Calibration Count-Up
+    record_segment(
+        "borneo", 3.2, 4.3, 5.1, True, False, (1620, 420), False,
+        "STAGE 05 // EPISTEMIC MI",
+        "STAGE 5/8: ISOLATING BAYESIAN MONTE CARLO EPISTEMIC UNCERTAINTY (T=6)",
+        "Smoke-FCER calibration verified: ECE = 0.0124 • Brier Score = 0.6612 • AUSE = 0.7334",
+    )
+    # Stage 6: Normalized Burn Ratio (NBR)
+    record_segment(
+        "borneo", 2.8, 5.1, 5.9, True, False, (1790, 420), False,
+        "STAGE 06 // NBR INDEX",
+        "STAGE 6/8: MAPPING NORMALIZED BURN RATIO (NBR) SEVERITY",
+        "Computing (B8_NIR - B12_SWIR2) / (B8_NIR + B12_SWIR2) to isolate severe peatland char",
+    )
+    # Stage 7: Captum Spectral XAI Bars Growing Rightwards
+    record_segment(
+        "borneo", 4.5, 5.9, 7.0, True, False, (1650, 690), False,
         "STAGE 07 // SPECTRAL XAI",
-        "CAPTUM INTEGRATED GRADIENTS: HORIZONTAL ATTRIBUTION BARS GROWING",
-        "Ranking SWIR2 (21.4%), NBR (17.8%), and SWIR1 (14.6%) as primary thermal drivers",
+        "STAGE 7/8: CAPTUM INTEGRATED GRADIENTS — BARS GROWING RIGHTWARDS",
+        "Ranking B12_SWIR2 (21.4%), NBR_Idx (17.8%), and B11_SWIR1 (14.6%) as top thermal drivers",
     )
+    # Stage 8: GFW Carbon Stock Audit Count-Up
     record_segment(
-        "borneo", 2.8, 7.0, 8.2, False, False, (1650, 920), False,
-        "STAGE 08 // GFW CARBON",
-        "IPCC TIER-3 CARBON AUDIT COMPLETE: 244.5 HA | 122,066 TONNES CO2e",
-        "Counting up Conservative, Nominal Mean, and Upper 95% CI carbon loss regimes",
+        "borneo", 5.8, 7.0, 8.2, False, False, (1650, 920), False,
+        "STAGE 08 // GFW CARBON AUDIT",
+        "STAGE 8/8: GFW CARBON STOCK AUDIT — COUNTING UP TO 245.5 HA & 122,559 tCO2e",
+        "Auditing IPCC Tier-3 Conservative (107,852 t), Nominal Mean (122,559 t), and Upper 95% CI (139,717 t)",
     )
 
-    # --- SCENE 3: Pre-Fire Baseline Check ---
-    record_segment(
-        "borneo", 1.2, 8.2, 8.2, False, False, pre_fire_btn_xy, True,
-        "TEMPORAL CHECK",
-        "SWITCHING TO PRE-FIRE BASELINE (2019-05-15) — HEALTHY CANOPY CHECK",
-        "Verifying zero false-positive detections on unburned Sentinel-2 imagery prior to ignition",
-    )
-    record_segment(
-        "borneo", 2.8, 8.2, 8.2, False, True, (680, 500), False,
-        "BASELINE VERIFIED",
-        "PRE-FIRE BASELINE: 0.0 HA BURNED • HEALTHY GREEN CANOPY CONFIRMED",
-        "Real pre-fire Sentinel-2 tile rendered on map with zero thermal SWIR anomaly",
-    )
-
-    # --- SCENE 4: Pinpoint 02 (Lahaina, Maui, USA) ---
-    record_segment(
-        "borneo", 1.2, 0.0, 0.0, False, False, hotspots_meta["maui"]["btn_xy"], True,
-        "PINPOINT 02 // MAUI",
-        "SELECTING TARGET 02: LAHAINA COASTAL WILDFIRE, MAUI, USA (2023-08-13)",
-        "Step 1: Camera flies across the Pacific to lock onto the Lahaina AOI reticle...",
-    )
-    record_segment(
-        "maui", 1.8, 0.0, 0.0, False, False, analyze_btn_xy, True,
-        "STEP 01 // MAUI LOCKED",
-        "LAHAINA AOI LOCKED (20.8783°N, 156.6770°W) — TRIGGERING STEP 2 SCAN",
-        "Panels reset to STANDBY • Operator clicks [ANALYZE FIRE & CARBON >>]",
-    )
-    record_segment(
-        "maui", 7.2, 0.0, 8.2, True, False, (1650, 740), False,
-        "STEP 02 // MAUI SCAN",
-        "LAHAINA PROGRESSIVE 8-PANEL SCAN: OUTLINE TRACE, XAI & CARBON AUDIT",
-        "Mapping 230.3 Hectares of coastal burn scar & counting up 57,780 tCO2e emissions",
-    )
-
-    # --- SCENE 5: Pinpoint 03 (Blue Mountains, NSW, Australia) ---
-    record_segment(
-        "maui", 1.2, 0.0, 0.0, False, False, hotspots_meta["australia"]["btn_xy"], True,
-        "PINPOINT 03 // NSW",
-        "SELECTING TARGET 03: BLUE MOUNTAINS MEGABLAZE, NSW, AUSTRALIA (2020-01-10)",
-        "Step 1: Flying to New South Wales eucalypt forest sector (-33.6820°S, 150.2850°E)...",
-    )
-    record_segment(
-        "australia", 1.8, 0.0, 0.0, False, False, analyze_btn_xy, True,
-        "STEP 01 // NSW LOCKED",
-        "BLUE MOUNTAINS AOI LOCKED — EXECUTING STEP 2 PROGRESSIVE SCAN (ViT-S/16)",
-        "Triggering 8-stage satellite telemetry & carbon accounting over eucalypt canopy",
-    )
-    record_segment(
-        "australia", 7.5, 0.0, 8.2, True, False, (1650, 880), False,
-        "STEP 02 // NSW SCAN",
-        "NSW MEGABLAZE AUDIT COMPLETE: 221.6 HA BURNED SCAR | 91,411 TONNES CO2e",
-        "Full 8-panel synchronization: False Color -> RGB -> AI Contour Fill -> UQ -> NBR -> XAI -> GFW Carbon",
-    )
-
-    # --- SCENE 6: Closing Title Card ---
+    # --- SCENE 3: Closing Title Card ---
     for f in create_title_card_frames(
         title="WATCHTOWER // READY FOR DEPLOYMENT",
         subtitle="UNCERTAINTY-CALIBRATED WILDFIRE AI & IPCC TIER-3 CARBON ACCOUNTING",
@@ -884,11 +856,10 @@ def generate_video():
         writer.append_data(f)
 
     writer.close()
-    print(f"[3/4] Raw video written to: {video_raw_path}")
+    print(f"[4/4] Muxing AI voiceover narration into final MP4...")
 
     ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
     if audio_path.is_file() and audio_path.stat().st_size > 1000:
-        print("[4/4] Muxing AI voiceover narration into final MP4...")
         cmd = [
             ffmpeg_exe,
             "-y",
@@ -910,7 +881,7 @@ def generate_video():
         import shutil
         shutil.copyfile(video_raw_path, video_final_path)
 
-    print(f"\n[SUCCESS] Final Hackathon Demo Video ready at: {video_final_path}")
+    print(f"\n[SUCCESS] Final Borneo-Only Hackathon Demo Video ready at: {video_final_path}")
     print(f"          File size: {video_final_path.stat().st_size / (1024 * 1024):.2f} MB")
 
 
