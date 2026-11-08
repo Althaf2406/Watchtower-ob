@@ -28,7 +28,7 @@ ASSETS_DIR = ROOT_DIR / "assets"
 OUTPUTS_DIR.mkdir(parents=True, exist_ok=True)
 
 VIDEO_W, VIDEO_H = 1920, 1080
-FPS = 30
+FPS = 24
 
 
 def get_font(size: int, kind: str = "display"):
@@ -576,8 +576,8 @@ def render_ui_frame(
     return np.array(canvas.convert("RGB"))
 
 
-def build_tactical_sfx_wav(duration_sec: float = 12.4, sr: int = 24000) -> np.ndarray:
-    """Synthesize clean Atlus/Persona-inspired tactical UI clicks, laser scan sweeps, and counter ticks."""
+def build_tactical_sfx_wav(duration_sec: float = 25.0, sr: int = 24000) -> np.ndarray:
+    """Synthesize clean Atlus/Persona-inspired tactical UI clicks, laser scan sweeps, and counter ticks for 25s timeline."""
     n_samples = int(duration_sec * sr)
     audio = np.zeros(n_samples, dtype=np.float32)
 
@@ -597,37 +597,38 @@ def build_tactical_sfx_wav(duration_sec: float = 12.4, sr: int = 24000) -> np.nd
         env = np.exp(-3.5 * t / max(dur, 0.01)) * np.sin(np.pi * t / max(dur, 0.01)) ** 0.3
         audio[i0:i1] += (np.sin(phase) * env * amp).astype(np.float32)
 
-    # 1. Pinpoint Click (t = 1.1s)
-    add_tone(1.10, 0.09, 980, 1480, amp=0.22)
-    # 2. Analyze Button Click & Engage (t = 2.3s)
-    add_tone(2.30, 0.12, 520, 1040, amp=0.26)
-    add_tone(2.38, 0.16, 1040, 1560, amp=0.22)
-    # 3. Stage 1 & 2 Laser Scan Sweeps (t = 2.4s, 3.25s)
-    add_tone(2.42, 0.75, 340, 880, amp=0.10)
-    add_tone(3.27, 0.75, 380, 960, amp=0.10)
-    # 4. Stage 3 AI Segmentation Outline Trace Ticks (t = 4.1s .. 5.5s)
-    for k in range(14):
-        add_tone(4.12 + k * 0.09, 0.04, 1200 + k * 45, amp=0.11)
-    # 5. Stages 4, 5, 6 Unlock Chimes (t = 5.6s, 6.35s, 7.1s)
-    add_tone(5.60, 0.25, 740, 1100, amp=0.14)
-    add_tone(6.35, 0.25, 880, 1320, amp=0.14)
-    add_tone(7.10, 0.25, 990, 1480, amp=0.14)
-    # 6. Stage 7 Captum XAI Bars Rising Cascade (t = 7.85s .. 8.85s)
+    # 1. Pinpoint Click (t = 1.6s)
+    add_tone(1.60, 0.10, 980, 1480, amp=0.22)
+    # 2. Analyze Button Click & Engage (t = 3.2s)
+    add_tone(3.20, 0.12, 520, 1040, amp=0.26)
+    add_tone(3.30, 0.18, 1040, 1560, amp=0.22)
+    # 3. Stage 1 & 2 Laser Scan Sweeps (t = 3.45s, 5.25s)
+    add_tone(3.45, 1.40, 340, 880, amp=0.10)
+    add_tone(5.25, 1.40, 380, 960, amp=0.10)
+    # 4. Stage 3 AI Segmentation Outline Trace Ticks (t = 7.05s .. 10.0s)
+    for k in range(22):
+        add_tone(7.05 + k * 0.13, 0.045, 1150 + k * 35, amp=0.11)
+    # 5. Stages 4, 5, 6 Unlock Chimes (t = 10.2s, 12.0s, 14.0s)
+    add_tone(10.25, 0.35, 740, 1100, amp=0.14)
+    add_tone(12.05, 0.35, 880, 1320, amp=0.14)
+    add_tone(14.05, 0.35, 990, 1480, amp=0.14)
+    # 6. Stage 7 Captum XAI Bars Rising Cascade (t = 15.8s .. 18.2s)
     for k in range(9):
-        add_tone(7.85 + k * 0.09, 0.08, 600 + k * 90, amp=0.12)
-    # 7. Stage 8 GFW Carbon Counter Rapid Ticks + Completion Chord (t = 8.95s .. 10.25s)
-    for k in range(16):
-        add_tone(8.95 + k * 0.07, 0.035, 1400 + (k % 3) * 120, amp=0.10)
-    # Completion Triad at t = 10.15s
-    add_tone(10.15, 0.65, 523.25, amp=0.14)  # C5
-    add_tone(10.15, 0.65, 659.25, amp=0.14)  # E5
-    add_tone(10.15, 0.65, 783.99, amp=0.14)  # G5
-    add_tone(10.15, 0.75, 1046.50, amp=0.14) # C6
+        add_tone(15.85 + k * 0.22, 0.10, 600 + k * 90, amp=0.12)
+    # 7. Stage 8 GFW Carbon Counter Rapid Ticks + Completion Chord (t = 18.6s .. 21.8s)
+    for k in range(24):
+        add_tone(18.65 + k * 0.12, 0.04, 1400 + (k % 3) * 120, amp=0.10)
+    # Completion Triad at t = 21.8s
+    add_tone(21.80, 0.85, 523.25, amp=0.14)  # C5
+    add_tone(21.80, 0.85, 659.25, amp=0.14)  # E5
+    add_tone(21.80, 0.85, 783.99, amp=0.14)  # G5
+    add_tone(21.80, 0.95, 1046.50, amp=0.14) # C6
 
     return np.clip(audio, -0.95, 0.95)
 
 
 def generate_video():
+    import gc
     video_raw_path = OUTPUTS_DIR / "watchtower_demo_raw.mp4"
     video_final_path = OUTPUTS_DIR / "watchtower_hackathon_demo.mp4"
     vo_mp3_path = OUTPUTS_DIR / "watchtower_vo_short.mp3"
@@ -636,8 +637,9 @@ def generate_video():
     print("[1/4] Fetching Esri satellite basemap & exact /api/analyze Borneo telemetry...")
     basemap = fetch_esri_basemap(-1.8430, 113.9729, zoom=13)
     telemetry = fetch_real_borneo_telemetry()
+    gc.collect()
 
-    print("[2/4] Rendering real-speed (1x, 30fps) Borneo demo video (~12.4 seconds)...")
+    print("[2/4] Rendering comfortable-paced (25s, 24fps) Borneo 8-panel demo video...")
     writer = imageio.get_writer(
         str(video_raw_path),
         fps=FPS,
@@ -679,45 +681,50 @@ def generate_video():
                 cursor_click=clicking,
             )
             writer.append_data(frame)
+        gc.collect()
 
-    # 1. Select Pinpoint 01 Borneo (1.2s) -> Move to Analyze Fire & Carbon & Click (1.2s)
-    record_segment(1.2, 0.0, 0.0, False, (1295, 30), True)
-    record_segment(1.2, 0.0, 0.0, False, analyze_btn_xy, True)
+    # 1. Select Pinpoint 01 Borneo (1.8s) -> Move to Analyze Fire & Carbon & Click (1.6s)
+    record_segment(1.8, 0.0, 0.0, False, (1295, 30), True)
+    record_segment(1.6, 0.0, 0.0, False, analyze_btn_xy, True)
 
-    # 2. Real-speed Progressive 8-Stage Scan (matching templates/index.html ~6.5s scan + 2.2s hold)
-    record_segment(0.85, 0.0, 1.0, True, (1440, 250), False)   # Stage 1: False Color
-    record_segment(0.85, 1.0, 2.0, True, (1620, 250), False)   # Stage 2: Natural RGB
-    record_segment(1.50, 2.0, 3.5, True, (1790, 250), False)   # Stage 3: AI Segmentation (Outline Trace -> Fill)
-    record_segment(0.75, 3.5, 4.3, True, (1440, 440), False)   # Stage 4: Predictive Entropy
-    record_segment(0.75, 4.3, 5.1, True, (1620, 440), False)   # Stage 5: Epistemic MI
-    record_segment(0.75, 5.1, 5.9, True, (1790, 440), False)   # Stage 6: NBR Burn Index
-    record_segment(1.10, 5.9, 7.0, True, (1650, 700), False)   # Stage 7: Captum Spectral XAI Bars
-    record_segment(1.30, 7.0, 8.2, False, (1650, 920), False)  # Stage 8: GFW Carbon Count-Up
-    record_segment(2.20, 8.2, 8.2, False, (690, 520), False)   # Hold completed state for 2.2s
+    # 2. Well-Paced Progressive 8-Stage Scan (~18.6s scan + 3.0s hold = 25.0s total)
+    record_segment(1.80, 0.0, 1.0, True, (1440, 250), False)   # Stage 1: False Color (SWIR-NIR-Red)
+    record_segment(1.80, 1.0, 2.0, True, (1620, 250), False)   # Stage 2: Natural RGB
+    record_segment(3.20, 2.0, 3.5, True, (1790, 250), False)   # Stage 3: AI Segmentation (Outline Trace -> Fill)
+    record_segment(1.80, 3.5, 4.3, True, (1440, 440), False)   # Stage 4: Predictive Entropy
+    record_segment(2.00, 4.3, 5.1, True, (1620, 440), False)   # Stage 5: Epistemic MI & Calibration
+    record_segment(1.80, 5.1, 5.9, True, (1790, 440), False)   # Stage 6: NBR Burn Index
+    record_segment(2.80, 5.9, 7.0, True, (1650, 700), False)   # Stage 7: Captum Spectral XAI Bars Growing
+    record_segment(3.40, 7.0, 8.2, False, (1650, 920), False)  # Stage 8: GFW Carbon Count-Up
+    record_segment(3.00, 8.2, 8.2, False, (690, 520), False)   # Hold completed state for 3.0s
 
     writer.close()
+    gc.collect()
 
-    print("[3/4] Synthesizing 12.4s Voiceover + Tactical UI Sound Effects...")
-    async def make_short_vo():
+    print("[3/4] Synthesizing natural-paced 25s Voiceover + Tactical UI Sound Effects...")
+    async def make_vo():
         text = (
-            "Locking onto the Borneo Peatland Megafire. "
-            "Pressing Analyze triggers our eight-stage Sentinel-2 scan: "
-            "mapping False Color, Natural RGB, AI burn segmentation, Bayesian uncertainty, NBR, "
-            "Captum spectral XAI, and auditing eighty-nine thousand tonnes of CO2 emissions."
+            "In Step One, we select the Borneo Peatland Megafire pinpoint and lock our Sentinel-2 scan box. "
+            "In Step Two, pressing Analyze Fire and Carbon triggers a progressive eight-panel scan: "
+            "first revealing Short-Wave Infrared False Color and True Color RGB, "
+            "followed by AI segmentation that traces the active fire outline and fills the burn scar. "
+            "Next, Watchtower maps Predictive Entropy, Bayesian Epistemic Uncertainty, and the Normalized Burn Ratio, "
+            "animates Captum Spectral XAI attribution bars, and counts up the Global Forest Watch Carbon Audit "
+            "to two hundred forty-five point four hectares and eighty-nine thousand tonnes of CO2 emissions."
         )
-        comm = edge_tts.Communicate(text, voice="en-US-ChristopherNeural", rate="+28%")
+        comm = edge_tts.Communicate(text, voice="en-US-ChristopherNeural", rate="+6%")
         await comm.save(str(vo_mp3_path))
 
-    asyncio.run(make_short_vo())
+    asyncio.run(make_vo())
 
-    sfx_samples = build_tactical_sfx_wav(duration_sec=12.4, sr=24000)
+    sfx_samples = build_tactical_sfx_wav(duration_sec=25.0, sr=24000)
     with wave.open(str(sfx_wav_path), "wb") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
         wf.setframerate(24000)
         wf.writeframes((sfx_samples * 32767).astype(np.int16).tobytes())
 
-    print("[4/4] Mixing Voiceover + Tactical SFX into final 12.4s MP4...")
+    print("[4/4] Mixing Voiceover + Tactical SFX into final 25s MP4...")
     ffmpeg_exe = imageio_ffmpeg.get_ffmpeg_exe()
     cmd = [
         ffmpeg_exe,
@@ -725,7 +732,7 @@ def generate_video():
         "-i", str(video_raw_path),
         "-i", str(vo_mp3_path),
         "-i", str(sfx_wav_path),
-        "-filter_complex", "[1:a]atempo=1.32,volume=1.3[vo];[2:a]volume=0.45[sfx];[vo][sfx]amix=inputs=2:duration=shortest:dropout_transition=1[aout]",
+        "-filter_complex", "[1:a]atempo=1.18,volume=1.35[vo];[2:a]volume=0.45[sfx];[vo][sfx]amix=inputs=2:duration=shortest:dropout_transition=1[aout]",
         "-map", "0:v:0",
         "-map", "[aout]",
         "-c:v", "copy",
@@ -736,12 +743,11 @@ def generate_video():
     ]
     subprocess.run(cmd, check=True)
 
-    # Cleanup temp audio/raw files
     for p in (video_raw_path, vo_mp3_path, sfx_wav_path):
         if p.is_file():
             p.unlink()
 
-    print(f"[SUCCESS] Saved crisp 12.4s Borneo demo video WITH AUDIO to: {video_final_path} ({video_final_path.stat().st_size / (1024*1024):.2f} MB)")
+    print(f"[SUCCESS] Saved 25.0s Borneo demo video WITH AUDIO to: {video_final_path} ({video_final_path.stat().st_size / (1024*1024):.2f} MB)")
 
 
 if __name__ == "__main__":
